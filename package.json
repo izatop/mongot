@@ -1,0 +1,43 @@
+{
+  "name": "mongot",
+  "version": "0.1.5-alpha",
+  "description": "A lightweight typed MongoDb library for TypeScript.",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "typings": "build/index.d.ts",
+  "scripts": {
+    "build": "rimraf build && tsc",
+    "test": "npm run build && tape -r source-map-support build/*.spec.js",
+    "prepublish": "npm run build",
+    "watch": "tsc -w"
+  },
+  "files": [
+    "build"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/izatop/mongot.git"
+  },
+  "keywords": [
+    "MongoDb",
+    "ODM",
+    "typescript"
+  ],
+  "author": "izatop@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/izatop/mongot/issues"
+  },
+  "homepage": "https://github.com/izatop/mongot#readme",
+  "dependencies": {
+    "@types/mongodb": "^2.1.30",
+    "mongodb": "^2.2.5"
+  },
+  "devDependencies": {
+    "@types/tape": "^4.2.27",
+    "rimraf": "^2.5.4",
+    "source-map-support": "^0.4.2",
+    "tape": "^4.6.0",
+    "typescript": "^2.0.0"
+  }
+}
