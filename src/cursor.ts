@@ -7,12 +7,16 @@ export interface Cursor<T extends Object> extends EventEmitter {
 
 export class Cursor<T extends Object> extends EventEmitter {
     public readonly cursor: MongoDb.Cursor;
+    private cast: <TNewDocument>(document: Object) => TNewDocument = (document) => document;
     
     constructor(cursor: MongoDb.Cursor, transform?: <TNewDocument>(document: Object) => TNewDocument) {
         super();
         
-        if (typeof transform !== 'function') {
-            cursor.map(transform);
+        if (typeof transform === 'function') {
+            this.cast = transform;
+            cursor.map(x => {
+                return transform(x);
+            });
         }
         
         this.cursor = cursor;
@@ -22,7 +26,16 @@ export class Cursor<T extends Object> extends EventEmitter {
         this.cursor.on('readable', () => this.emit('readable'));
     }
     
-    count(applySkipLimit: boolean, options: MongoDb.CursorCommentOptions): Promise<number> {
+    clone() {
+        return new Cursor<T>(this.cursor.clone(), this.cast);
+    }
+    
+    rewind() {
+        this.cursor.rewind();
+        return this;
+    }
+    
+    count(applySkipLimit?: boolean, options?: MongoDb.CursorCommentOptions): Promise<number> {
         return this.cursor.count(applySkipLimit, options);
     }
     
@@ -57,12 +70,12 @@ export class Cursor<T extends Object> extends EventEmitter {
         return this;
     }
     
-    exec(): Promise<T[]> {
-        this.cursor.rewind();
-        return this.cursor.toArray();
-    }
-    
     fetch(): Promise<T> {
         return this.cursor.next();
+    }
+    
+    fetchAll(): Promise<T[]> {
+        this.cursor.rewind();
+        return this.cursor.toArray() as Promise<T[]>;
     }
 }

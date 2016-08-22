@@ -3,17 +3,13 @@ import {SchemaDocument} from "./document";
 import {Cursor} from "./cursor";
 import {Connection} from "./connection";
 import {MetadataStore} from "./metadata/store";
-
-const states = new WeakSet<SchemaDocument>();
-
-function mutateModifyPromise<T>(result: Promise<{value: Object, lastErrorObject: Object, ok: number}>): Promise<T> {
-    return result.then(result => result.value) as Promise<T>;
-}
+import {InsertResult, DeleteResult, UpdateResult, FindAndModifyResult} from "./collection/helpers";
 
 class Collection<TDocument extends SchemaDocument> {
     private readonly construct: typeof SchemaDocument;
     private readonly state: PromiseLike<MongoDb.Collection>;
     private readonly name: string;
+    public readonly connection: Promise<Connection>;
     
     constructor(
         connection: Promise<Connection>,
@@ -25,11 +21,33 @@ class Collection<TDocument extends SchemaDocument> {
         
         this.name = name || metadata.name;
         this.construct = construct || metadata.construct;
-        this.state = connection.then(connection => connection.get(name, options || metadata.options));
+        this.state = connection.then(connection => connection.get(this.name, options || metadata.options));
+        this.connection = connection;
     }
     
     get collection(): PromiseLike<MongoDb.Collection> {
         return this.state;
+    }
+
+    /**
+     * @param fn
+     * @returns {any}
+     */
+    private async queue<T>(fn: (collection: MongoDb.Collection) => T | PromiseLike<T>): Promise<T> {
+        try {
+            const collection = await this.state;
+            return fn(collection);
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    }
+    
+    private filter(filter: Object | TDocument): Object {
+        if (filter instanceof SchemaDocument) {
+            return {_id: filter._id};
+        }
+        
+        return filter;
     }
     
     /**
@@ -41,30 +59,14 @@ class Collection<TDocument extends SchemaDocument> {
     }
     
     /**
-     * @param instance
-     * @returns {any}
+     * @param document
+     * @returns {Promise<UpdateResult | InsertResult>}
      */
-    save(instance: TDocument): Promise<any> {
-        if (states.has(instance)) {
-            return this.updateOne({_id: instance._id}, {$set: Object.assign({}, instance)});
+    save(document: TDocument): Promise<UpdateResult<TDocument> | InsertResult<TDocument>> {
+        if (document._id) {
+            return this.updateOne({_id: document._id}, {$set: document.toObject()});
         } else {
-            return this.insertOne(Object.assign({}, instance)).then(result => {
-                states.add(instance);
-                return result;
-            });
-        }
-    }
-    
-    /**
-     * @param fn
-     * @returns {any}
-     */
-    private async queue<T>(fn: (collection: MongoDb.Collection) => T): Promise<T> {
-        try {
-            const collection = await this.state;
-            return fn(collection);
-        } catch (error) {
-            return Promise.reject(error);
+            return this.insertOne(document);
         }
     }
     
@@ -73,7 +75,7 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {undefined}
      */
-    aggregate<TResult extends Object>(pipeline: Object[], options: MongoDb.CollectionAggregationOptions): Promise<TResult> {
+    aggregate<TResult extends Object>(pipeline: Object[], options?: MongoDb.CollectionAggregationOptions): Promise<TResult> {
         return this.queue(collection => collection.aggregate(pipeline, options));
     }
     
@@ -117,7 +119,7 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      */
     deleteMany(filter: Object, options?: MongoDb.CollectionOptions) {
-        return this.queue(collection => collection.deleteMany(filter, options));
+        return this.queue(async (collection): Promise<DeleteResult> => new DeleteResult(await collection.deleteMany(filter, options)));
     }
     
     /**
@@ -125,7 +127,7 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      */
     deleteOne(filter: Object, options?: { w?: number | string, wtimmeout?: number, j?: boolean, bypassDocumentValidation?: boolean }) {
-        return this.queue(collection => collection.deleteOne(filter, options));
+        return this.queue(async (collection): Promise<DeleteResult> => new DeleteResult(await collection.deleteOne(filter, options)));
     }
     
     /**
@@ -162,8 +164,8 @@ class Collection<TDocument extends SchemaDocument> {
      * @param query
      * @returns {Cursor<TDocument>}
      */
-    async find(query: Object): Promise<Cursor<TDocument>> {
-        return this.queue(collection => new Cursor<TDocument>(collection.find(query)));
+    async find(query?: Object): Promise<Cursor<TDocument>> {
+        return this.queue((collection): Cursor<TDocument> => new Cursor<TDocument>(collection.find(query), (document) => this.factory(document)));
     }
     
     /**
@@ -171,11 +173,11 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<TDocument>}
      */
-    async findOne(query?: Object, options?: MongoDb.FindOneOptions): Promise<TDocument> {
+    async findOne(query?: Object, options?: {sort: Object}): Promise<TDocument> {
         const cursor = await this.find(query);
-        
+
         cursor.limit(1);
-        if (options.sort) {
+        if (options && options.sort) {
             cursor.sort(<any> options.sort);
         }
         
@@ -185,30 +187,39 @@ class Collection<TDocument extends SchemaDocument> {
     /**
      * @param filter
      * @param options
-     * @returns {Promise<TDocument>}
+     * @returns {Promise<FindAndModifyResult<TDocument>>}
      */
-    findOneAndDelete(filter: Object, options?: { projection?: Object, sort?: Object, maxTimeMS?: number }): Promise<TDocument> {
-        return mutateModifyPromise<TDocument>(this.queue(collection => collection.findOneAndDelete(filter, options)));
+    findOneAndDelete(filter: Object, options?: { projection?: Object, sort?: Object, maxTimeMS?: number }): Promise<FindAndModifyResult<TDocument>> {
+        return this.queue(async (collection): Promise<FindAndModifyResult<TDocument>> => {
+            const result = await collection.findOneAndDelete(this.filter(filter), options);
+            return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d) => this.factory(d)});
+        });
     }
     
     /**
      * @param filter
      * @param replacement
      * @param options
-     * @returns {Promise<TDocument>}
+     * @returns {Promise<FindAndModifyResult<TDocument>>}
      */
-    findOneAndReplace(filter: Object, replacement: Object, options?: MongoDb.FindOneAndReplaceOption):Promise<TDocument> {
-        return mutateModifyPromise<TDocument>(this.queue(collection => collection.findOneAndReplace(filter, replacement, options)));
+    findOneAndReplace(filter: Object, replacement: Object, options?: MongoDb.FindOneAndReplaceOption): Promise<FindAndModifyResult<TDocument>> {
+        return this.queue(async (collection): Promise<FindAndModifyResult<TDocument>> => {
+            const result = await collection.findOneAndReplace(this.filter(filter), replacement, options);
+            return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d) => this.factory(d)});
+        });
     }
     
     /**
      * @param filter
      * @param update
      * @param options
-     * @returns {Promise<TDocument>}
+     * @returns {Promise<FindAndModifyResult<TDocument>>}
      */
-    findOneAndUpdate(filter: Object, update: Object, options?: MongoDb.FindOneAndReplaceOption):Promise<TDocument> {
-        return mutateModifyPromise<TDocument>(this.queue(collection => collection.findOneAndUpdate(filter, update, options)));
+    findOneAndUpdate(filter: Object, update: Object, options?: MongoDb.FindOneAndReplaceOption): Promise<FindAndModifyResult<TDocument>> {
+        return this.queue(async (collection): Promise<FindAndModifyResult<TDocument>> => {
+            const result = await collection.findOneAndUpdate(this.filter(filter), update, options);
+            return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d) => this.factory(d)});
+        });
     }
     
     /**
@@ -270,6 +281,17 @@ class Collection<TDocument extends SchemaDocument> {
         return this.queue(collection => collection.initializeUnorderedBulkOp(options));
     }
     
+    private createObjectReference(doc: TDocument) {
+        const reference = {
+            [Symbol.for('ref')]: [doc],
+            unref() {
+                return this[Symbol.for('ref')].pop(); // delete reference for original document
+            }
+        };
+        
+        return Object.assign(reference, doc.toObject());
+    }
+    
     /**
      * @TODO Mutate result
      *
@@ -278,18 +300,23 @@ class Collection<TDocument extends SchemaDocument> {
      * @returns {Promise<InsertWriteOpResult>}
      */
     insertMany(docs: TDocument[], options?: MongoDb.CollectionInsertManyOptions) {
-        return this.queue(collection => collection.insertMany(docs, options));
+        return this.queue(async (collection): Promise<Array<InsertResult<TDocument>>> => {
+            const result = await collection.insertMany(docs.map(doc => this.createObjectReference(doc)), options);
+            return result.ops.map(res => {
+                return new InsertResult({insertedId: res._id}, res.unref());
+            })
+        });
     }
     
     /**
-     * @TODO Mutate result
-     *
      * @param doc
      * @param options
      * @returns {Promise<InsertOneWriteOpResult>}
      */
     insertOne(doc: TDocument, options?: MongoDb.CollectionInsertOneOptions) {
-        return this.queue(collection => collection.insertOne(doc, options));
+        return this.queue(async (collection): Promise<InsertResult<TDocument>> => {
+            return new InsertResult(await collection.insertOne(doc.toObject(), options), doc);
+        });
     }
     
     /**
@@ -377,7 +404,7 @@ class Collection<TDocument extends SchemaDocument> {
      * @returns {Promise<Promise<UpdateWriteOpResult>>}
      */
     updateOne(filter: Object, update: Object, options?: Object) {
-        return this.queue(collection => collection.updateOne(filter, update, options));
+        return this.queue(async (collection): Promise<UpdateResult<TDocument>> => new UpdateResult(await collection.updateOne(filter, update, options)));
     }
 }
 

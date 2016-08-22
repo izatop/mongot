@@ -40,7 +40,7 @@ export class TestDocument extends SchemaDocument {
     }
     
     @hook
-    beforeInsert() {
+    protected beforeInsert() {
         this.version++;
     }
 }

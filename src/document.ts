@@ -42,6 +42,35 @@ export class TypeCast {
         }
     }
     
+    static toPlainValue(value: any) {
+        switch (typeof value) {
+            case 'object': {
+                if (Array.isArray(value)) {
+                    return [].concat(value)
+                        .map(x => TypeCast.toPlainValue(x));
+                }
+                
+                if (value instanceof ObjectID) {
+                    return value.toString();
+                }
+
+                if (value instanceof SchemaMetadata) {
+                    return value.toObject();
+                }
+                
+                return Object.assign(
+                    {},
+                    ...Object.keys(value)
+                        .filter(key => typeof value[key] !== 'undefined')
+                        .map(key => ({[key]: TypeCast.toPlainValue(value[key])}))
+                );
+            }
+            
+            default:
+                return value;
+        }
+    }
+    
     static castToArray(type: typeof SchemaArray, proto: any, value: any): SchemaArray<any> {
         ok(true === Array.isArray(value), `${type.name} need an array value for constructor given ${value.toString()}.`);
         return new type(value, x => TypeCast.cast(proto, x));
@@ -106,8 +135,39 @@ export class TypeCast {
 }
 
 export class SchemaMetadata {
+    readonly _id?: ObjectID;
+    
     constructor(document?: Object) {
+        Object.defineProperty(this, Symbol.for('id'), {value: undefined, configurable: false, writable: true});
+        Object.defineProperty(this, '_id', {
+            get() {
+                return this[Symbol.for('id')];
+            },
+            set(value: ObjectID) {
+                this[Symbol.for('id')] = value;
+            },
+            enumerable: true,
+            configurable: false
+        });
+        
         Object.assign(this, document);
+    }
+    
+    toObject() {
+        const properties = [];
+        Object.keys(this)
+            .forEach(key => {
+                // Allow assigned values only
+                if (typeof this[key] !== 'undefined') {
+                    properties.push({[key]: TypeCast.toPlainValue(this[key])});
+                }
+            });
+        
+        return Object.assign({}, ...properties);
+    }
+
+    toJSON() {
+        return this.toObject();
     }
     
     protected upgrade(document?: Object) {
@@ -167,10 +227,7 @@ export class SchemaDocument extends SchemaMetadata {
         return emitter;
     }
     
-    beforeInsert(): void {
-        console.log('so, wtf?')
-    }
-    
+    protected beforeInsert(): void {}
     protected beforeUpdate(): void {}
     protected beforeDelete(): void {}
     
@@ -190,6 +247,10 @@ export class SchemaArray<T> extends Array<T> {
         super();
         this.cast = cast ? cast : x => x as T;
         values.forEach(value => this.push(value));
+    }
+    
+    toArray() {
+        return this.map(value => TypeCast.toPlainValue(value));
     }
     
     push(...items: Object[]): number {
