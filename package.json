@@ -8,7 +8,7 @@
   "scripts": {
     "build": "rimraf build && tsc",
     "test": "npm run build && tape -r source-map-support build/*.spec.js",
-    "prepublish": "npm run build",
+    "prepublish": "npm test",
     "watch": "tsc -w"
   },
   "files": [
