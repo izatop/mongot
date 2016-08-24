@@ -1,7 +1,7 @@
 import * as MongoDb from 'mongodb';
 import {SchemaDocument} from "../document";
 
-export class UpdateResult<TDocument extends SchemaDocument> {
+export class UpdateResult {
     readonly matched: number;
     readonly modified: number;
     readonly upserted: number;

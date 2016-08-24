@@ -8,28 +8,19 @@ A lightweight typed MongoDb library for TypeScript.
 
 ## Usage
 
-First connect to a mongodb:
+### Collections
 
-```ts
-# index.ts
-import {Repository} from 'mongot';
+A collection is a class which support CRUD operations for own 
+documents.
 
-const repository = new Repository('mongodb://localhost/test');
-```
+#### Create a collection example
 
-There are available any variants of the MongoClient arguments.
-
-Next create your schemas.
-
-### Define Collection
-
-A collection is a factory to read/update/remove documents. 
 ```ts
 # UserCollection.ts
 import {Collection, collection} from 'mongot'; 
 import {UserDocument} from './UserDocument';
 
-@collection('users', UserDocument)
+@collection('users', UserDocument) // bind to a document schema
 class UserCollection extends Collection<UserDocument> {
     findByEmail(email: string) {
         return this.findOne({email});
@@ -38,7 +29,27 @@ class UserCollection extends Collection<UserDocument> {
 
 ```
 
-### Define Document
+### Document Schema
+
+Document schemas support following types: `string`, `boolean`, `number`,
+`date`, `Object` (any), `SchemaFragment` (also known as subdocument), 
+`array` type may contain any of these type. 
+`Buffer` didn't tested at this time.
+
+Any type can be defined via a function decorator `@prop`:
+
+```ts
+    @prop fieldName: string
+```
+
+For arrays you need pass a proto to the function decorator `@prop`
+like as:
+
+```ts
+    @prop(Date) loginDates: SchemaArray<Date> = new SchemaArray();
+```
+
+#### Create a document example
 
 ```ts
 # UserDocument.ts
@@ -46,7 +57,7 @@ import {hook, prop, SchemaDocument} from 'mongot';
 
 @unique({email: -1})
 class UserDocument extends SchemaDocument {
-    @prop @req firstName: string;
+    @prop firstName: string;
     @prop lastName: string;
     
     @prop @req email: string;
@@ -55,7 +66,7 @@ class UserDocument extends SchemaDocument {
     @prop updated: Date;
     
     @hook
-    updateBefore() {
+    beforeUpdate() {
         this.updated = new Date();
     }
     
@@ -67,22 +78,35 @@ class UserDocument extends SchemaDocument {
 
 ```
 
-### Connecting a collection to repository
+### Create a repository
 
-Before querying we should connect a collection to the repository
-instance:
+To connect your collections to MongoDb you should create a repository:
+
+```ts
+# index.ts
+import {Repository} from 'mongot';
+
+const options = {};
+const repository = new Repository('mongodb://localhost/test', options);
+```
+
+The `Repository` class constructor has same arguments that MongoClient.
+
+### Querying
+
+Before querying you should get a collection instance via 
+`Repository.get`.
 
 ```ts
 # index.ts
 
 async function main(): void {
     const users: UserCollection = repository.get(UserCollection);
-    const user = await users.findByEmail('mongot@example.com');
+    const user = await users.findByEmail('username@example.com');
     
-    console.log(user.displayName);
+    // do something
+    ...
 }
-
-main();
 ```
 
 ## Documentation
@@ -92,3 +116,7 @@ Coming soon... maybe
 ## Vanilla
 
 You can if you know how it cook.
+
+## License
+
+MIT

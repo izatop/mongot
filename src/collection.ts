@@ -5,6 +5,16 @@ import {Connection} from "./connection";
 import {MetadataStore} from "./metadata/store";
 import {InsertResult, DeleteResult, UpdateResult, FindAndModifyResult} from "./collection/helpers";
 
+namespace Events {
+    export const beforeInsert = 'beforeInsert';
+    export const beforeUpdate = 'beforeUpdate';
+    export const beforeDelete = 'beforeDelete';
+    
+    export const afterInsert = 'afterInsert';
+    export const afterUpdate = 'afterUpdate';
+    export const afterDelete = 'afterDelete';
+}
+
 class Collection<TDocument extends SchemaDocument> {
     private readonly construct: typeof SchemaDocument;
     private readonly state: PromiseLike<MongoDb.Collection>;
@@ -62,12 +72,12 @@ class Collection<TDocument extends SchemaDocument> {
      * @param document
      * @returns {Promise<UpdateResult | InsertResult>}
      */
-    save(document: TDocument): Promise<UpdateResult<TDocument> | InsertResult<TDocument>> {
+    save(document: TDocument): Promise<UpdateResult | InsertResult<TDocument>> {
         if (document._id) {
-            return this.updateOne({_id: document._id}, {$set: document.toObject()});
-        } else {
-            return this.insertOne(document);
+            return this.updateOne(document, document.toObject());
         }
+        
+        return this.insertOne(document);
     }
     
     /**
@@ -126,8 +136,19 @@ class Collection<TDocument extends SchemaDocument> {
      * @param filter
      * @param options
      */
-    deleteOne(filter: Object, options?: { w?: number | string, wtimmeout?: number, j?: boolean, bypassDocumentValidation?: boolean }) {
-        return this.queue(async (collection): Promise<DeleteResult> => new DeleteResult(await collection.deleteOne(filter, options)));
+    deleteOne(filter: Object | SchemaDocument, options?: { w?: number | string, wtimmeout?: number, j?: boolean, bypassDocumentValidation?: boolean }) {
+        return this.queue(async (collection): Promise<DeleteResult> => {
+            if (filter instanceof SchemaDocument) {
+                const listener = filter.getEventListener();
+                listener.emit(Events.beforeDelete);
+                const deleteResult = new DeleteResult(await collection.deleteOne(filter, options));
+                listener.emit(Events.afterDelete);
+                
+                return deleteResult;
+            }
+            
+            return new DeleteResult(await collection.deleteOne(filter, options));
+        });
     }
     
     /**
@@ -301,9 +322,13 @@ class Collection<TDocument extends SchemaDocument> {
      */
     insertMany(docs: TDocument[], options?: MongoDb.CollectionInsertManyOptions) {
         return this.queue(async (collection): Promise<Array<InsertResult<TDocument>>> => {
+            const listeners = docs.map(doc => doc.getEventListener());
+            listeners.forEach(listener => listener.emit(Events.beforeInsert));
             const result = await collection.insertMany(docs.map(doc => this.createObjectReference(doc)), options);
             return result.ops.map(res => {
-                return new InsertResult({insertedId: res._id}, res.unref());
+                const inertResult = new InsertResult({insertedId: res._id}, res.unref());
+                listeners.map(listener => listener.emit(Events.afterInsert));
+                return inertResult;
             })
         });
     }
@@ -315,7 +340,11 @@ class Collection<TDocument extends SchemaDocument> {
      */
     insertOne(doc: TDocument, options?: MongoDb.CollectionInsertOneOptions) {
         return this.queue(async (collection): Promise<InsertResult<TDocument>> => {
-            return new InsertResult(await collection.insertOne(doc.toObject(), options), doc);
+            const listener = doc.getEventListener();
+            listener.emit(Events.beforeInsert);
+            const insertResult = new InsertResult(await collection.insertOne(doc.toObject(), options), doc);
+            listener.emit(Events.afterInsert);
+            return insertResult;
         });
     }
     
@@ -393,8 +422,10 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<Promise<UpdateWriteOpResult>>}
      */
-    updateMany(filter: Object, update: Object, options?: Object) {
-        return this.queue(collection => collection.updateMany(filter, update, options));
+    updateMany(filter: Object, update: Object, options?: Object): Promise<UpdateResult> {
+        return this.queue(async (collection): Promise<UpdateResult> => {
+            return new UpdateResult(await collection.updateMany(filter, update, options));
+        });
     }
     
     /**
@@ -403,8 +434,19 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<Promise<UpdateWriteOpResult>>}
      */
-    updateOne(filter: Object, update: Object, options?: Object) {
-        return this.queue(async (collection): Promise<UpdateResult<TDocument>> => new UpdateResult(await collection.updateOne(filter, update, options)));
+    updateOne(filter: Object | SchemaDocument, update: Object, options?: Object): Promise<UpdateResult> {
+        return this.queue(async (collection): Promise<UpdateResult> => {
+            if (filter instanceof SchemaDocument) {
+                const listener = filter.getEventListener();
+                listener.emit(Events.beforeUpdate);
+                const updateResult = new UpdateResult(await collection.updateOne(this.filter(filter), update, options));
+                listener.emit(Events.afterUpdate);
+                
+                return updateResult;
+            }
+            
+            return new UpdateResult(await collection.updateOne(filter, update, options));
+        });
     }
 }
 

@@ -34,6 +34,7 @@ test('Collection.insertOne()', async (t) => {
     t.ok(result.insertedId instanceof ObjectID, 'result.insertedId should be ObjectID');
     t.equals(document._id, result.insertedId, 'TestDocument should have insertedId');
     t.equals(document, result.ref, 'result.ref should be TestDocument');
+    t.equals(document.version, 1, 'TestDocument.beforeInsert should be fired');
     
     return (await collection.connection).disconnect();
 });
