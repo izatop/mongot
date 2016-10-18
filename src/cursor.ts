@@ -20,10 +20,6 @@ export class Cursor<T extends Object> extends EventEmitter {
         }
         
         this.cursor = cursor;
-        this.cursor.on('data', document => this.emit('data', document));
-        this.cursor.on('error', err => this.emit('error', err));
-        this.cursor.on('end', () => this.emit('end'));
-        this.cursor.on('readable', () => this.emit('readable'));
     }
     
     clone() {
@@ -69,55 +65,25 @@ export class Cursor<T extends Object> extends EventEmitter {
         return this;
     }
     
-    fetch(): Promise<T> {
-        return new Promise((resolve, reject) => {
-            this.cursor.hasNext((err, hasNext) => {
-                if (err) {
-                    reject(err);
-                } else if (hasNext) {
-                    this.cursor.next((err, document) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(document);
-                        }
-                    })
-                } else {
-                    this.rewind();
-                    resolve();
-                }
-            })
-        })
-        
+    async hasNext(): Promise<boolean> {
+        return this.cursor.hasNext();
     }
     
-    fetchAll(): Promise<T[]> {
+    async fetch(): Promise<T> {
+        if (await this.cursor.hasNext()) {
+            return await this.cursor.next();
+        }
+        
+        return null;
+    }
+    
+    async fetchAll(): Promise<T[]> {
         this.rewind();
-        return new Promise((resolve, reject) => {
-            const data = [];
-            const next = () => {
-                this.cursor.hasNext((err, hasNext) => {
-                    if (err) {
-                        return reject(err);
-                    }
-    
-                    if (hasNext) {
-                        this.cursor.next((err, document) => {
-                            if (err) {
-                                return reject(err);
-                            }
-    
-                            data.push(document);
-                            next();
-                        })
-                    } else {
-                        this.rewind();
-                        resolve(data);
-                    }
-                })
-            };
-            
-            next()
-        });
+        const result:T[] = [];
+        while(await this.cursor.hasNext()) {
+            result.push(await this.cursor.next());
+        }
+        
+        return result;
     }
 }
