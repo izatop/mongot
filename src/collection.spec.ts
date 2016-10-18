@@ -6,9 +6,10 @@ import {InsertResult, DeleteResult} from "./collection/helpers";
 import {ObjectID} from "mongodb";
 import {TestDocument} from "./spec/TestDocument";
 
-function setupMany(collection: TestCollection, documents: Array<TestDocument>) {
-    const data = ['foo', 'bar', 'baz'];
-    data.map(name => collection.factory({name})).forEach(x => documents.push(x));
+function setupMany(collection: TestCollection, documents: Array<TestDocument>, raw?: ObjectID[]) {
+    const data: Object[] = raw || ['foo', 'bar', 'baz'].map(name => ({name}));
+    data.map(x => collection.factory(x))
+        .forEach(x => documents.push(x));
     return collection.insertMany(documents);
 }
 
@@ -18,7 +19,29 @@ test('Collection.find()', async (t) => {
     
     t.ok(result instanceof Cursor, 'TestCollection.find({}) should return Promise<Cursor>');
     t.ok(result.cursor, 'A result should have an original cursor');
+    
+    return (await collection.connection).disconnect();
+});
 
+test('Collection.find().fetchAll()', async (t) => {
+    const collection = repo().get(TestCollection);
+    const documents = [];
+    const foos = [];
+    try {
+        for (let i = 0; i < 100; i++) {
+            foos.push({foo: "foo" + i.toString()});
+        }
+        
+        setupMany(collection, documents, foos);
+        const cursor = await collection.find({});
+        const result = await cursor.fetchAll();
+        t.equal(result.length, 100, 'result.fetchAll() should return 100 documents');
+    } catch (error) {
+        t.fail(error);
+    }
+    
+    collection.drop();
+    
     return (await collection.connection).disconnect();
 });
 

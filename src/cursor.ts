@@ -52,7 +52,6 @@ export class Cursor<T extends Object> extends EventEmitter {
     map<TMutate>(fn: Function): Cursor<TMutate> {
         this.cursor.map(fn);
         return new Cursor<TMutate>(this.cursor);
-        
     }
     
     max(value: number): this {
@@ -75,7 +74,32 @@ export class Cursor<T extends Object> extends EventEmitter {
     }
     
     fetchAll(): Promise<T[]> {
-        this.cursor.rewind();
-        return this.cursor.toArray() as Promise<T[]>;
+        this.rewind();
+        return new Promise((resolve, reject) => {
+            const data = [];
+            const next = () => {
+                this.cursor.hasNext((err, hasNext) => {
+                    if (err) {
+                        return reject(err);
+                    }
+    
+                    if (hasNext) {
+                        this.cursor.next((err, document) => {
+                            if (err) {
+                                return reject(err);
+                            }
+    
+                            data.push(document);
+                            next();
+                        })
+                    } else {
+                        this.rewind();
+                        resolve(data);
+                    }
+                })
+            };
+            
+            next()
+        });
     }
 }
