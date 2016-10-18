@@ -26,7 +26,11 @@ export class Connection {
     }
     
     disconnect(): Promise<void> {
-        return this.db.close();
+        if (this.db) {
+            return this.db.close();
+        }
+        
+        return Promise.resolve();
     }
     
     static connect(uri: string, options?: MongoDb.MongoClientOptions): Promise<Connection> {
@@ -35,9 +39,11 @@ export class Connection {
         }
         
         return new Promise((resolve, reject) => {
-            MongoDb.MongoClient.connect(uri, options, (error, db) => {
+            const callback: MongoDb.MongoCallback<MongoDb.Db> = (error, db) => {
                 error ? reject(error) : resolve(new Connection(db));
-            });
+            };
+            
+            MongoDb.MongoClient.connect(uri, options, callback);
         })
     }
 }

@@ -15,7 +15,7 @@ test('Repository', t => {
         connection2.state.catch(error => {
             t.ok(error instanceof MongoError, 'Should throw an error with broken uri');
             connection2.destroy();
-            
+    
             t.end();
         });
     });

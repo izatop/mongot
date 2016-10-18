@@ -45,9 +45,8 @@ export class TypeCast {
     static toPlainValue(value: any) {
         switch (typeof value) {
             case 'object': {
-                if (Array.isArray(value)) {
-                    return [].concat(value)
-                        .map(x => TypeCast.toPlainValue(x));
+                if (value === null) {
+                    return value;
                 }
                 
                 if (value instanceof ObjectID) {
@@ -58,10 +57,17 @@ export class TypeCast {
                     return value.toObject();
                 }
                 
+                if (value instanceof SchemaArray) {
+                    return value.toArray();
+                }
+    
+                if (Array.isArray(value)) {
+                    return value.map(x => TypeCast.toPlainValue(x));
+                }
+                
                 return Object.assign(
                     {},
                     ...Object.keys(value)
-                        .filter(key => typeof value[key] !== 'undefined')
                         .map(key => ({[key]: TypeCast.toPlainValue(value[key])}))
                 );
             }
@@ -243,14 +249,16 @@ export class SchemaFragment extends SchemaMetadata {
 export class SchemaArray<T> extends Array<T> {
     protected readonly cast: (value: any) => T;
     
-    constructor(values: T[], cast?: (value: any) => T) {
+    constructor(values?: T[], cast?: (value: any) => T) {
         super();
         this.cast = cast ? cast : x => x as T;
-        values.forEach(value => this.push(value));
+        if (values && typeof values === 'object') {
+            [...values].forEach(value => this.push(value));
+        }
     }
     
     toArray() {
-        return this.map(value => TypeCast.toPlainValue(value));
+        return [...this].map(value => TypeCast.toPlainValue(value));
     }
     
     push(...items: Object[]): number {

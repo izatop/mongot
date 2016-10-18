@@ -12,6 +12,7 @@ export default function wrapper (msg: string, fn: (assert: test.Test & Test) => 
                     .catch(err => t.ok(err, msg));
             }
         });
+        
         try {
             await fn(more);
             t.end();

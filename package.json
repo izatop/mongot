@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/izatop/mongot#readme",
   "dependencies": {
-    "@types/mongodb": "^2.1.30",
+    "@types/mongodb": "^2.1.33",
     "mongodb": "^2.2.5"
   },
   "devDependencies": {
@@ -38,6 +38,6 @@
     "rimraf": "^2.5.4",
     "source-map-support": "^0.4.2",
     "tape": "^4.6.0",
-    "typescript": "^2.0.0"
+    "typescript": "^2.0.3"
   }
 }

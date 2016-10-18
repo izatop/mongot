@@ -1,7 +1,6 @@
 import test from './spec/wrap';
 import repo from './spec/connect';
 import {Cursor} from "./cursor";
-import {Collection} from './collection';
 import {TestCollection} from "./spec/TestCollection";
 import {InsertResult, DeleteResult} from "./collection/helpers";
 import {ObjectID} from "mongodb";

@@ -15,7 +15,7 @@ class Repository {
     }
     
     destroy() {
-        return this.state.then(connection => connection.disconnect());
+        return this.state.then(connection => connection.disconnect(), error => error);
     }
 }
 
