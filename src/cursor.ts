@@ -70,7 +70,25 @@ export class Cursor<T extends Object> extends EventEmitter {
     }
     
     fetch(): Promise<T> {
-        return this.cursor.next();
+        return new Promise((resolve, reject) => {
+            this.cursor.hasNext((err, hasNext) => {
+                if (err) {
+                    reject(err);
+                } else if (hasNext) {
+                    this.cursor.next((err, document) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(document);
+                        }
+                    })
+                } else {
+                    this.rewind();
+                    resolve();
+                }
+            })
+        })
+        
     }
     
     fetchAll(): Promise<T[]> {

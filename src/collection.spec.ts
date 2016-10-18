@@ -10,7 +10,7 @@ function setupMany(collection: TestCollection, documents: Array<TestDocument>, r
     const data: Object[] = raw || ['foo', 'bar', 'baz'].map(name => ({name}));
     data.map(x => collection.factory(x))
         .forEach(x => documents.push(x));
-    return collection.insertMany(documents);
+    return collection.deleteMany({}).then(result => collection.insertMany(documents));
 }
 
 test('Collection.find()', async (t) => {
@@ -32,7 +32,7 @@ test('Collection.find().fetchAll()', async (t) => {
             foos.push({foo: "foo" + i.toString()});
         }
         
-        setupMany(collection, documents, foos);
+        await setupMany(collection, documents, foos);
         const cursor = await collection.find({});
         const result = await cursor.fetchAll();
         t.equal(result.length, 100, 'result.fetchAll() should return 100 documents');
@@ -40,9 +40,34 @@ test('Collection.find().fetchAll()', async (t) => {
         t.fail(error);
     }
     
-    collection.drop();
+    (await collection.connection).disconnect();
+});
+
+test('Collection.find().fetch()', async (t) => {
+    const collection = repo().get(TestCollection);
+    const documents = [];
+    const foos = [];
+    try {
+        for (let i = 0; i < 100; i++) {
+            foos.push({foo: "foo" + i.toString()});
+        }
+        
+        await setupMany(collection, documents, foos);
+        const cursor = await collection.find({});
+        let counter = 0, result;
+        do {
+            result = await cursor.fetch();
+            if (result) {
+                counter++;
+            }
+        } while (result);
+        
+        t.equal(counter, 100, 'result.fetch() should read 100 records');
+    } catch (error) {
+        t.fail(error);
+    }
     
-    return (await collection.connection).disconnect();
+    (await collection.connection).disconnect();
 });
 
 test('Collection.insertOne()', async (t) => {
@@ -77,7 +102,6 @@ test('Collection.insertMany()', async (t) => {
 test('Collection.deleteMany()', async (t) => {
     const collection = repo().get(TestCollection);
     const documents: Array<TestDocument> = [];
-    await setupMany(collection, documents);
     const result = await setupMany(collection, documents);
     
     t.equals(result.length, documents.length, 'documents should be inserted');
