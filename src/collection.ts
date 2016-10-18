@@ -4,6 +4,8 @@ import {Cursor} from "./cursor";
 import {Connection} from "./connection";
 import {MetadataStore} from "./metadata/store";
 import {InsertResult, DeleteResult, UpdateResult, FindAndModifyResult} from "./collection/helpers";
+import {Query} from "./query";
+import {ObjectID} from "mongodb";
 
 namespace Events {
     export const beforeInsert = 'beforeInsert';
@@ -57,7 +59,15 @@ class Collection<TDocument extends SchemaDocument> {
             return {_id: filter._id};
         }
         
-        return filter;
+        return this.normalizeQuery(filter);
+    }
+    
+    private normalizeQuery(query: Object) {
+        if (query instanceof ObjectID) {
+            return {_id: query};
+        }
+        
+        return new Query(this.construct, query).format();
     }
     
     /**
@@ -104,7 +114,7 @@ class Collection<TDocument extends SchemaDocument> {
      * @returns {undefined}
      */
     count(query: Object, options: MongoDb.MongoCountPreferences): Promise<number> {
-        return this.queue(collection => collection.count(query, options));
+        return this.queue(collection => collection.count(this.normalizeQuery(query), options));
     }
     
     /**
@@ -129,7 +139,9 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      */
     deleteMany(filter: Object, options?: MongoDb.CollectionOptions) {
-        return this.queue(async (collection): Promise<DeleteResult> => new DeleteResult(await collection.deleteMany(filter, options)));
+        return this.queue(async (collection): Promise<DeleteResult> =>
+            new DeleteResult(await collection.deleteMany(this.normalizeQuery(filter), options))
+        );
     }
     
     /**
@@ -141,7 +153,7 @@ class Collection<TDocument extends SchemaDocument> {
             if (filter instanceof SchemaDocument) {
                 const listener = filter.getEventListener();
                 listener.emit(Events.beforeDelete);
-                const deleteResult = new DeleteResult(await collection.deleteOne(filter, options));
+                const deleteResult = new DeleteResult(await collection.deleteOne(this.filter(filter), options));
                 listener.emit(Events.afterDelete);
                 
                 return deleteResult;
@@ -157,7 +169,7 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      */
     distinct(key: string, query: Object, options?: { readPreference?: MongoDb.ReadPreference | string }) {
-        return this.queue(collection => collection.distinct(key, options));
+        return this.queue(collection => collection.distinct(key, this.normalizeQuery(query), options));
     }
     
     /**
@@ -186,7 +198,12 @@ class Collection<TDocument extends SchemaDocument> {
      * @returns {Cursor<TDocument>}
      */
     async find(query?: Object): Promise<Cursor<TDocument>> {
-        return this.queue((collection): Cursor<TDocument> => new Cursor<TDocument>(collection.find(query), (document) => this.factory(document)));
+        return this.queue((collection): Cursor<TDocument> =>
+            new Cursor<TDocument>(
+                collection.find(this.normalizeQuery(query)),
+                (document) => this.factory(document)
+            )
+        );
     }
     
     /**
@@ -424,7 +441,7 @@ class Collection<TDocument extends SchemaDocument> {
      */
     updateMany(filter: Object, update: Object, options?: Object): Promise<UpdateResult> {
         return this.queue(async (collection): Promise<UpdateResult> => {
-            return new UpdateResult(await collection.updateMany(filter, update, options));
+            return new UpdateResult(await collection.updateMany(this.normalizeQuery(filter), update, options));
         });
     }
     
@@ -445,7 +462,7 @@ class Collection<TDocument extends SchemaDocument> {
                 return updateResult;
             }
             
-            return new UpdateResult(await collection.updateOne(filter, update, options));
+            return new UpdateResult(await collection.updateOne(this.normalizeQuery(filter), update, options));
         });
     }
 }

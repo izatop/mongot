@@ -43,6 +43,26 @@ test('Collection.find().fetchAll()', async (t) => {
     (await collection.connection).disconnect();
 });
 
+test('Collection.findOne(query)', async (t) => {
+    const collection = repo().get(TestCollection);
+    const documents = [];
+    const foos = [];
+    for (let i = 0; i < 10; i++) {
+        foos.push({foo: "foo" + i.toString()});
+    }
+    
+    await setupMany(collection, documents, foos);
+    
+    const index = Math.round(Math.random() * documents.length - 1);
+    const query = {_id: documents[index]._id.toHexString()};
+    const queryMulti = {_id: {$in: documents.map(x => x._id.toHexString())}};
+    const doc = await collection.findOne(query);
+    const docs = await collection.find(queryMulti);
+    t.same(doc._id, documents[index]._id, 'collection.findOne(query) should return valid document');
+    t.same((await docs.fetchAll()).length, documents.length, 'collection.find(query) should return valid count of documents');
+    (await collection.connection).disconnect();
+});
+
 test('Collection.find().fetch()', async (t) => {
     const collection = repo().get(TestCollection);
     const documents = [];
@@ -162,7 +182,7 @@ test('Collection.findOne()', async (t) => {
     await setupMany(collection, documents);
     
     const document = await collection.findOne(documents[1]._id);
-    t.same(document.toObject(), documents[1].toObject());
+    t.same(document.toObject(), documents[1].toObject(), 'collection.findOne() should return valid document');
     
     return (await collection.connection).disconnect();
 });
