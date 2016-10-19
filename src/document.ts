@@ -178,7 +178,11 @@ export class SchemaMetadata {
     
     protected upgrade(document?: Object) {
         const merge = Object.assign({}, this, document);
-        this.getMetadata().forEach(({type, proto}, key: string) => {
+        const metadata = this.getMetadata();
+        
+        ok(!!metadata, `Metadata does not defined for ${this.constructor.name}`);
+        
+        metadata.forEach(({type, proto}, key: string) => {
             const storageKey = Symbol(key);
             Object.defineProperty(this, storageKey, {value: undefined, writable: true, configurable: false});
             Object.defineProperty(this, key, {
@@ -207,6 +211,11 @@ export class SchemaMetadata {
     }
     
     protected getMetadata() {
+        if (this instanceof PartialDocument) {
+            const obj = Object.keys(this).filter(x => x !== '_id').map(x => ([x, {type: Object, proto: Object}]));
+            return new Map([...obj]);
+        }
+        
         return MetadataStore.getSchemaMetadata(<typeof SchemaMetadata> (this.constructor));
     }
     

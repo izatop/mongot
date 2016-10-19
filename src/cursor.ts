@@ -36,9 +36,14 @@ export class Cursor<T extends Object> extends EventEmitter {
         return this.cursor.count(applySkipLimit, options);
     }
     
-    project(fields: Object) {
-        this.cast = x => new PartialDocument(x);
-        this.cursor.project(fields);
+    project(fields: Object | string) {
+        this.cast = x => PartialDocument.factory(x);
+        if (typeof fields === 'string') {
+            this.cursor.project(Object.assign({}, ...fields.split(/[\s,]*/).map(x => ({[x]: 1}))));
+        } else {
+            this.cursor.project(fields);
+        }
+        
         return this;
     }
     

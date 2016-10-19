@@ -7,7 +7,7 @@ import {ObjectID} from "mongodb";
 import {TestDocument} from "./spec/TestDocument";
 import {PartialDocument} from "./";
 
-function setupMany(collection: TestCollection, documents: Array<TestDocument>, raw?: ObjectID[]) {
+function setupMany(collection: TestCollection, documents: Array<TestDocument>, raw?: Object[]) {
     const data: Object[] = raw || ['foo', 'bar', 'baz'].map(name => ({name}));
     data.map(x => collection.factory(x))
         .forEach(x => documents.push(x));
@@ -30,7 +30,7 @@ test('Collection.find().fetchAll()', async (t) => {
     const foos = [];
     try {
         for (let i = 0; i < 100; i++) {
-            foos.push({foo: "foo" + i.toString()});
+            foos.push({name: "foo" + i.toString()});
         }
         
         await setupMany(collection, documents, foos);
@@ -94,12 +94,12 @@ test('Collection.find().fetch()', async (t) => {
 test('Collection.find().project()', async (t) => {
     const collection = repo().get(TestCollection);
     const documents = [];
-    await setupMany(collection, documents);
+    const number = Math.random();
+    await setupMany(collection, documents, [{name: 'foo', number, version: 1}]);
     
-    const result = await (await collection.find({})).project({foo: 1}).fetch();
-    console.log(result);
+    const result = await (await collection.find({})).project({name: 1, number: 1}).fetch();
     t.ok(result instanceof PartialDocument, 'TestCollection.find({}).project().fetch() should return PartialDocument instead TestDocument');
-    
+    t.same(result.toObject(), {name: 'foo', number, _id: result._id.toString()}, 'PartialDocument should have custom fields');
     return (await collection.connection).disconnect();
 });
 
