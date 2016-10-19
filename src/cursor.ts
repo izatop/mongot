@@ -1,5 +1,6 @@
 import * as MongoDb from 'mongodb';
 import {EventEmitter} from "events";
+import {PartialDocument} from "./";
 
 export interface Cursor<T extends Object> extends EventEmitter {
     on(event: 'data', listener: (document:T) => void): this;
@@ -15,7 +16,7 @@ export class Cursor<T extends Object> extends EventEmitter {
         if (typeof transform === 'function') {
             this.cast = transform;
             cursor.map(x => {
-                return transform(x);
+                return this.cast(x);
             });
         }
         
@@ -33,6 +34,12 @@ export class Cursor<T extends Object> extends EventEmitter {
     
     count(applySkipLimit?: boolean, options?: MongoDb.CursorCommentOptions): Promise<number> {
         return this.cursor.count(applySkipLimit, options);
+    }
+    
+    project(fields: Object) {
+        this.cast = x => new PartialDocument(x);
+        this.cursor.project(fields);
+        return this;
     }
     
     limit(value: number): this {

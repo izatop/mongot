@@ -246,6 +246,8 @@ export class SchemaFragment extends SchemaMetadata {
     readonly _id?: ObjectID;
 }
 
+export class PartialDocument extends SchemaDocument {}
+
 export class SchemaArray<T> extends Array<T> {
     protected readonly cast: (value: any) => T;
     

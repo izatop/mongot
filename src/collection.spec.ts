@@ -5,6 +5,7 @@ import {TestCollection} from "./spec/TestCollection";
 import {InsertResult, DeleteResult} from "./collection/helpers";
 import {ObjectID} from "mongodb";
 import {TestDocument} from "./spec/TestDocument";
+import {PartialDocument} from "./";
 
 function setupMany(collection: TestCollection, documents: Array<TestDocument>, raw?: ObjectID[]) {
     const data: Object[] = raw || ['foo', 'bar', 'baz'].map(name => ({name}));
@@ -88,6 +89,18 @@ test('Collection.find().fetch()', async (t) => {
     }
     
     (await collection.connection).disconnect();
+});
+
+test('Collection.find().project()', async (t) => {
+    const collection = repo().get(TestCollection);
+    const documents = [];
+    await setupMany(collection, documents);
+    
+    const result = await (await collection.find({})).project({foo: 1}).fetch();
+    console.log(result);
+    t.ok(result instanceof PartialDocument, 'TestCollection.find({}).project().fetch() should return PartialDocument instead TestDocument');
+    
+    return (await collection.connection).disconnect();
 });
 
 test('Collection.insertOne()', async (t) => {
