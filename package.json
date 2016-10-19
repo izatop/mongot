@@ -18,6 +18,9 @@
     "type": "git",
     "url": "git+https://github.com/izatop/mongot.git"
   },
+  "publishConfig": {
+    "registry": "http://registry.npmjs.org"
+  },
   "keywords": [
     "MongoDb",
     "ODM",

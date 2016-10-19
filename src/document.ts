@@ -65,11 +65,15 @@ export class TypeCast {
                     return value.map(x => TypeCast.toPlainValue(x));
                 }
                 
-                return Object.assign(
-                    {},
-                    ...Object.keys(value)
-                        .map(key => ({[key]: TypeCast.toPlainValue(value[key])}))
-                );
+                if (Object.prototype.toString.call(value) === '[object Object]') {
+                    return Object.assign(
+                        {},
+                        ...Object.keys(value)
+                            .map(key => ({[key]: TypeCast.toPlainValue(value[key])}))
+                    );
+                } else {
+                    return value;
+                }
             }
             
             default:

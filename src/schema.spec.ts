@@ -27,6 +27,7 @@ test('Schema', async (t) => {
     t.same(document.any, {}, 'TestDocument.any should match');
     t.equals(document.sum, 10, 'TestDocument.sum should match');
     t.equals(document.deep.bar.baz, 'hello', 'TestDocument.deep.bar.baz should match');
+    t.equals(document.toJSON().date.toString(), document.date.toString(), 'TestDocument schema should serialize date to string');
     
     document.getEventListener().emit('beforeInsert', []);
     t.equals(document.version, 1, 'TestDocument.version should be increased by beforeInsert hook');

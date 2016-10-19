@@ -35,6 +35,8 @@ export class TestDocument extends SchemaDocument {
     
     @prop deep: FooFragment = new FooFragment();
     
+    @prop date: Date = new Date;
+    
     get sum() {
         return this.listOfNumbers.reduce((l, r) => l+r);
     }
