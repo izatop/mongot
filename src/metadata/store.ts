@@ -41,6 +41,6 @@ export class MetadataStore {
     }
     
     static getSchemaHookMetadata(target: typeof SchemaMetadata) {
-        return StoreHooks.get(target);
+        return StoreHooks.get(target) || [];
     }
 }
