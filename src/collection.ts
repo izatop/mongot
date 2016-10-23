@@ -1,4 +1,5 @@
 import * as MongoDb from 'mongodb';
+import {ok} from 'assert';
 import {SchemaDocument} from "./document";
 import {Cursor} from "./cursor";
 import {Connection} from "./connection";
@@ -54,7 +55,7 @@ class Collection<TDocument extends SchemaDocument> {
         }
     }
     
-    private filter(filter: Object | TDocument): Object {
+    private filter(filter: Object | TDocument | string | ObjectID): Object {
         if (filter instanceof SchemaDocument) {
             return {_id: filter._id};
         }
@@ -62,9 +63,11 @@ class Collection<TDocument extends SchemaDocument> {
         return this.normalizeQuery(filter);
     }
     
-    private normalizeQuery(query: Object) {
+    private normalizeQuery(query: Object | ObjectID | string) {
         if (query instanceof ObjectID) {
             return {_id: query};
+        } else if (typeof query === 'string') {
+            return {_id: ObjectID.createFromHexString(query)};
         }
         
         return new Query(this.construct, query).format();
@@ -82,9 +85,14 @@ class Collection<TDocument extends SchemaDocument> {
      * @param document
      * @returns {Promise<UpdateResult | InsertResult>}
      */
-    save(document: TDocument): Promise<UpdateResult | InsertResult<TDocument>> {
-        if (document._id) {
-            return this.updateOne(document, document.toObject());
+    save(document: TDocument | Object): Promise<UpdateResult | InsertResult<TDocument>> {
+        ok(document && typeof document === 'object', 'Collection.save(document) require an object or an instance of SchemaDocument.');
+        if (Object.prototype.hasOwnProperty.call(document, '_id') && document['_id']) {
+            if (document instanceof SchemaDocument) {
+                return this.updateOne(document._id, document.toObject());
+            } else {
+                return this.updateOne(document['_id'], document);
+            }
         }
         
         return this.insertOne(document);
@@ -355,11 +363,16 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<InsertOneWriteOpResult>}
      */
-    insertOne(doc: TDocument, options?: MongoDb.CollectionInsertOneOptions) {
+    insertOne(doc: Object | TDocument, options?: MongoDb.CollectionInsertOneOptions) {
         return this.queue(async (collection): Promise<InsertResult<TDocument>> => {
-            const listener = doc.getEventListener();
+            let document: TDocument = doc as TDocument;
+            if (false === doc instanceof SchemaDocument) {
+                document = this.factory(doc);
+            }
+            
+            const listener = document.getEventListener();
             listener.emit(Events.beforeInsert);
-            const insertResult = new InsertResult(await collection.insertOne(doc.toObject(), options), doc);
+            const insertResult = new InsertResult(await collection.insertOne(document.toObject(), options), document);
             listener.emit(Events.afterInsert);
             return insertResult;
         });
@@ -456,14 +469,31 @@ class Collection<TDocument extends SchemaDocument> {
             if (filter instanceof SchemaDocument) {
                 const listener = filter.getEventListener();
                 listener.emit(Events.beforeUpdate);
-                const updateResult = new UpdateResult(await collection.updateOne(this.filter(filter), update, options));
+                const updateResult = new UpdateResult(await collection.updateOne(this.filter(filter), this.createUpdateSchema(update), options));
                 listener.emit(Events.afterUpdate);
                 
                 return updateResult;
             }
             
-            return new UpdateResult(await collection.updateOne(this.normalizeQuery(filter), update, options));
+            return new UpdateResult(await collection.updateOne(this.filter(filter), this.createUpdateSchema(update), options));
         });
+    }
+    
+    private createUpdateSchema(document: Object | SchemaDocument): Object {
+        if (document instanceof SchemaDocument) {
+            return this.createUpdateSchema(document.toObject());
+        }
+        
+        if (false === Object.prototype.hasOwnProperty.call(document, '_id')) {
+            return document;
+        } else {
+            return Object.assign(
+                {},
+                Object.keys(document)
+                    .filter(key => key !== '_id')
+                    .map(key => ({[key]: document[key]}))
+            );
+        }
     }
 }
 

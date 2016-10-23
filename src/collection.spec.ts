@@ -2,7 +2,7 @@ import test from './spec/wrap';
 import repo from './spec/connect';
 import {Cursor} from "./cursor";
 import {TestCollection} from "./spec/TestCollection";
-import {InsertResult, DeleteResult} from "./collection/helpers";
+import {InsertResult, DeleteResult, UpdateResult} from "./collection/helpers";
 import {ObjectID} from "mongodb";
 import {TestDocument} from "./spec/TestDocument";
 import {PartialDocument} from "./";
@@ -208,3 +208,38 @@ test('Collection.drop()', async (t) => {
     return (await collection.connection).disconnect();
 });
 
+test('Collection.updateOne()', async t => {
+    const collection = repo().get(TestCollection);
+    const {ref} = await collection.insertOne({name: 'foo'});
+    
+    ref.number = 98;
+    const res1 = await collection.updateOne(ref, ref);
+    t.ok(res1.modified === 1, 'collection.updateOne(ref, ref) should be ok');
+    
+    ref.number = 99;
+    const res2 = await collection.updateOne(ref._id, ref);
+    t.ok(res2.modified === 1, 'collection.updateOne(ref._id, ref) should be ok');
+    
+    ref.number = 100;
+    const res3 = await collection.updateOne({_id: ref._id.toString()}, ref);
+    t.ok(res3.modified === 1, 'collection.updateOne(ref._id.toString(), ref) should be ok');
+    
+    return (await collection.connection).disconnect();
+});
+
+test('Collection.save()', async t => {
+    const collection = repo().get(TestCollection);
+    const {ref} = await collection.insertOne({name: 'foo'});
+    
+    ref.number = 100;
+    const res1 = await collection.save(ref);
+    t.ok(res1 instanceof UpdateResult && res1.modified === 1, 'collection.save(ref) should be ok');
+    
+    const res2 = await collection.save({name: 'bar'});
+    t.ok(res2 instanceof InsertResult && res2.insertedId, 'collection.save({name: bar}) should be ok');
+    
+    const res3 = await collection.save(collection.factory({name: 'bar'}));
+    t.ok(res3 instanceof InsertResult && res3.insertedId, 'collection.save(collection.factory({name: bar})) should be ok');
+    
+    return (await collection.connection).disconnect();
+});

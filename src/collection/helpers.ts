@@ -11,7 +11,9 @@ export class UpdateResult {
         this.matched = matchedCount;
         this.modified = modifiedCount;
         this.upserted = upsertedCount;
-        this.upsertedId = new MongoDb.ObjectID(upsertedId._id.toString());
+        if (upsertedId) {
+            this.upsertedId = upsertedId._id;
+        }
     }
 }
 
@@ -20,7 +22,7 @@ export class InsertResult<TDocument extends SchemaDocument> {
     readonly ref: TDocument;
     
     constructor({insertedId}: {insertedId: MongoDb.ObjectID}, document: TDocument) {
-        this.insertedId = new MongoDb.ObjectID(insertedId.toString());
+        this.insertedId = insertedId;
         this.ref = document;
         this.ref[Symbol.for('id')] = this.insertedId;
     }
