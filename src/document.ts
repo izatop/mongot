@@ -91,7 +91,6 @@ export class TypeCast {
         return new type(value, x => TypeCast.cast(SchemaFragment, x, proto));
     }
     
-    
     static castToFragment(proto: typeof SchemaFragment, value: Object): SchemaFragment {
         return proto.factory<SchemaFragment>(value);
     }
@@ -272,7 +271,7 @@ export class SchemaArray<T> extends Array<T> {
         }
     }
     
-    toArray() {
+    toArray(): Array<T> {
         return [...this].map(value => TypeCast.toPlainValue(value));
     }
     

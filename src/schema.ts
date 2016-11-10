@@ -37,6 +37,15 @@ export interface PropDecorator {
     <T>(type: T): PropertyDecorator;
 }
 
+function checkProto(type: any, proto: any, target: any, propertyKey: any) {
+    if (Array.isPrototypeOf(type)) {
+        ok(
+            proto !== type,
+            `Schema ${target.constructor.name} should have a proto for an array of ${propertyKey} property`
+        );
+    }
+}
+
 export const prop:PropDecorator = (...args: any[]) => {
     if (args.length > 1) {
         const [target, propertyKey] = args;
@@ -46,6 +55,8 @@ export const prop:PropDecorator = (...args: any[]) => {
         if (typeof type === "function" && SchemaFragment.isPrototypeOf(type)) {
             type = SchemaFragment;
         }
+    
+        checkProto(type, proto, target, propertyKey);
         
         MetadataStore.setSchemaPropertyMetadata(
             target.constructor,
@@ -56,6 +67,9 @@ export const prop:PropDecorator = (...args: any[]) => {
         return (target: any, propertyKey: string | symbol): void => {
             const type = Reflect.getMetadata('design:type', target, propertyKey) || args.shift();
             const proto = args.shift() || type;
+            
+            checkProto(type, proto, target, propertyKey);
+            
             MetadataStore.setSchemaPropertyMetadata(
                 target.constructor,
                 propertyKey,
