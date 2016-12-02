@@ -165,11 +165,16 @@ test('Collection.findOneAndUpdate/Replace/Delete()', async (t) => {
     const documents: Array<TestDocument> = [];
     await setupMany(collection, documents);
     
+    const findOneAndUpdateUndefinedResult = await collection.findOneAndUpdate({undefinedKey: 'unknown'}, {$set: {name: 'foo2'}});
     const findOneAndUpdateResult = await collection.findOneAndUpdate(documents[0], {$set: {name: 'foo2'}});
     const findOneAndReplaceResult = await collection.findOneAndReplace(documents[1], Object.assign({}, documents[1], {name: 'bar1'}), {returnOriginal: false});
     const findOneAndDeleteResult = await collection.findOneAndDelete(documents[2]);
     
+    t.equal(findOneAndUpdateUndefinedResult.has(), false, 'findOneAndUpdateUndefinedResult.has() should return false');
+    t.equal(findOneAndUpdateUndefinedResult.get(), null, 'findOneAndUpdateUndefinedResult.get() should return null');
+    t.equal(findOneAndUpdateResult.has(), true, 'findOneAndUpdateResult.has() should return true');
     t.same(findOneAndUpdateResult.get().name, 'foo', 'findOneAndUpdateResult should contain an original document');
+    t.equal(findOneAndReplaceResult.has(), true, 'findOneAndReplaceResult.has() should return true');
     t.same(findOneAndReplaceResult.get().name, 'bar1', 'findOneAndReplaceResult should contain a replaced document');
     t.same(findOneAndDeleteResult.get().toObject(), documents[2].toObject(), 'findOneAndDeleteResult should contain a deleted document');
     

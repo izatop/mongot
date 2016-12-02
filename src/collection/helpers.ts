@@ -38,11 +38,13 @@ export class DeleteResult {
 
 export class FindAndModifyResult<TDocument extends SchemaDocument> {
     readonly lastError: Object;
-    private readonly ref;
+    private readonly ref: TDocument = null;
     
     constructor({lastErrorObject, factory, value}: {lastErrorObject: Object, factory: (document?: Object) => TDocument, value?: Object}) {
         this.lastError = lastErrorObject;
-        this.ref = value ? factory(value) : null;
+        if (!!value) {
+            this.ref = factory(value);
+        }
     }
     
     has(): boolean {
