@@ -1,6 +1,6 @@
 {
   "name": "mongot",
-  "version": "0.2.13",
+  "version": "0.3.0",
   "description": "A lightweight typed MongoDb library for TypeScript.",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -12,7 +12,6 @@
     "version": "git add -A",
     "preversion": "npm test",
     "postversion": "git push"
-
   },
   "repository": {
     "type": "git",
