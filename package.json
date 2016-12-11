@@ -6,10 +6,13 @@
   "types": "src/index.d.ts",
   "typings": "src/index.d.ts",
   "scripts": {
-    "build": "rimraf build && tsc",
+    "build": "tsc",
+    "watch": "tsc -w",
     "test": "npm run build && tape -r source-map-support build/*.spec.js",
-    "prepublish": "npm test",
-    "watch": "tsc -w"
+    "version": "git add -A",
+    "preversion": "npm test",
+    "postversion": "git push"
+
   },
   "repository": {
     "type": "git",
