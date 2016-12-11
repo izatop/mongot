@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "npm run build && tape -r source-map-support build/*.spec.js",
+    "test": "npm run build && tape -r source-map-support src/*.spec.js",
     "version": "git add -A",
     "preversion": "npm test",
     "postversion": "git push"
