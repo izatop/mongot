@@ -31,11 +31,33 @@ class Collection<TDocument extends SchemaDocument> {
         construct?: typeof SchemaDocument
     ) {
         const metadata = MetadataStore.getCollectionMetadata(<typeof Collection> this.constructor) || <any> {};
+        const indexes = MetadataStore.getCollectionIndexMetadata(<typeof Collection> this.constructor) || [];
         
         this.name = name || metadata.name;
         this.construct = construct || metadata.construct;
         this.state = connection.then(connection => connection.get(this.name, options || metadata.options));
         this.connection = connection;
+    
+        this.queue(async collection => {
+            const existing = await collection.indexes();
+            indexes.forEach(index => {
+                let indexName;
+                if (typeof index.indexOrSpec === 'string') {
+                    indexName = `${index.indexOrSpec}_1`;
+                } else {
+                    indexName = Object.keys(index.indexOrSpec)
+                        .map(key => `${key}_${index.indexOrSpec[key]}`)
+                        .join('_');
+                }
+            
+                if (existing.filter(x => x.name == indexName).length === 0) {
+                    this.createIndex(index.indexOrSpec, Object.assign({background: true}, index.options))
+                        .catch(error => {
+                            console.log(index, error.stack);
+                        });
+                }
+            });
+        });
     }
     
     get collection(): PromiseLike<MongoDb.Collection> {
@@ -87,15 +109,25 @@ class Collection<TDocument extends SchemaDocument> {
      */
     save(document: TDocument | Object): Promise<UpdateResult | InsertResult<TDocument>> {
         ok(document && typeof document === 'object', 'Collection.save(document) require an object or an instance of SchemaDocument.');
-        if (Object.prototype.hasOwnProperty.call(document, '_id') && document['_id']) {
-            if (document instanceof SchemaDocument) {
-                return this.updateOne(document._id, document.toObject());
-            } else {
-                return this.updateOne(document['_id'], document);
-            }
+    
+        let prepared: TDocument = document as TDocument;
+        if (false === document instanceof SchemaDocument) {
+            prepared = this.factory(document);
         }
         
-        return this.insertOne(document);
+        if (prepared._id) {
+            const update = prepared.toObject();
+            return this.updateOne(prepared, {
+                $set: Object.assign(
+                    {},
+                    ...Object.keys(update)
+                        .filter(key => key !== '_id')
+                        .map(key => ({[key]: update[key]}))
+                )
+            });
+        }
+
+        return this.insertOne(prepared);
     }
     
     /**
@@ -103,7 +135,7 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {undefined}
      */
-    aggregate<TResult extends Object>(pipeline: Object[], options?: MongoDb.CollectionAggregationOptions): Promise<TResult> {
+    aggregate(pipeline: Object[], options?: MongoDb.CollectionAggregationOptions) {
         return this.queue(collection => collection.aggregate(pipeline, options));
     }
     
@@ -359,20 +391,22 @@ class Collection<TDocument extends SchemaDocument> {
     }
     
     /**
-     * @param doc
+     * @param document
      * @param options
      * @returns {Promise<InsertOneWriteOpResult>}
      */
-    insertOne(doc: Object | TDocument, options?: MongoDb.CollectionInsertOneOptions) {
+    insertOne(document: Object | TDocument, options?: MongoDb.CollectionInsertOneOptions) {
         return this.queue(async (collection): Promise<InsertResult<TDocument>> => {
-            let document: TDocument = doc as TDocument;
-            if (false === doc instanceof SchemaDocument) {
-                document = this.factory(doc);
+            let prepared: TDocument;
+            if (document instanceof SchemaDocument) {
+                prepared = document;
+            } else {
+                prepared = this.factory(document);
             }
             
-            const listener = document.getEventListener();
+            const listener = prepared.getEventListener();
             listener.emit(Events.beforeInsert);
-            const insertResult = new InsertResult(await collection.insertOne(document.toObject(), options), document);
+            const insertResult = new InsertResult(await collection.insertOne(prepared.toObject(), options), prepared);
             listener.emit(Events.afterInsert);
             return insertResult;
         });
@@ -469,31 +503,14 @@ class Collection<TDocument extends SchemaDocument> {
             if (filter instanceof SchemaDocument) {
                 const listener = filter.getEventListener();
                 listener.emit(Events.beforeUpdate);
-                const updateResult = new UpdateResult(await collection.updateOne(this.filter(filter), this.createUpdateSchema(update), options));
+                const updateResult = new UpdateResult(await collection.updateOne(this.filter(filter), update, options));
                 listener.emit(Events.afterUpdate);
                 
                 return updateResult;
             }
             
-            return new UpdateResult(await collection.updateOne(this.filter(filter), this.createUpdateSchema(update), options));
+            return new UpdateResult(await collection.updateOne(this.filter(filter), update, options));
         });
-    }
-    
-    private createUpdateSchema(document: Object | SchemaDocument): Object {
-        if (document instanceof SchemaDocument) {
-            return this.createUpdateSchema(document.toObject());
-        }
-        
-        if (false === Object.prototype.hasOwnProperty.call(document, '_id')) {
-            return document;
-        } else {
-            return Object.assign(
-                {},
-                Object.keys(document)
-                    .filter(key => key !== '_id')
-                    .map(key => ({[key]: document[key]}))
-            );
-        }
     }
 }
 

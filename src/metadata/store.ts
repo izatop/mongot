@@ -2,6 +2,7 @@ import {SchemaMetadata} from "../document";
 import {Collection} from "../collection";
 
 const StoreCollection: WeakMap<typeof Collection, {name: string; construct?: typeof SchemaMetadata; options?: Object}> = new WeakMap();
+const StoreCollectionIndexes: WeakMap<typeof Collection, {indexOrSpec: string | {[key: string]: 1 | -1}, options?: Object}[]> = new WeakMap();
 const StoreType: WeakMap<typeof SchemaMetadata, Map<string | symbol, {type?: any; proto?: any; required?: boolean}>> = new WeakMap();
 const StoreHooks: WeakMap<typeof SchemaMetadata, Array<string>> = new WeakMap();
 
@@ -10,6 +11,20 @@ export class MetadataStore {
     
     static setCollectionMetadata(target: typeof Collection, name: string, construct?: typeof SchemaMetadata, options?: Object) {
         StoreCollection.set(target, {name, construct, options});
+    }
+    
+    static setCollectionIndexMetadata(target: typeof Collection, indexOrSpec: string | {[key: string]: 1 | -1}, options?: Object) {
+        StoreCollectionIndexes.set(target, [
+            ...(StoreCollectionIndexes.get(target) || []),
+            {
+                indexOrSpec,
+                options
+            }
+        ]);
+    }
+    
+    static getCollectionIndexMetadata(target: typeof Collection) {
+        return StoreCollectionIndexes.get(target);
     }
     
     static getCollectionMetadata(target: typeof Collection) {

@@ -14,7 +14,14 @@ export interface CollectionDecorator {
     ): (constructor: typeof Collection) => void;
 }
 
-export const collection:CollectionDecorator = (...args: any[]) => {
+export interface IndexDecorator {
+    (
+        indexOrSpec: string | {[key: string]: 1 | -1},
+        options?: MongoDb.IndexOptions
+    ): (constructor: typeof Collection) => void;
+}
+
+export const collection: CollectionDecorator = (...args: any[]) => {
     ok(args.length > 0 && args.length < 4, 'Mapper @collection has invalid number of arguments: ' + args.length);
     ok(typeof args[0] === 'function' || typeof args[0] === 'string', 'Mapper @collection has invalid type of first argument');
     
@@ -29,6 +36,18 @@ export const collection:CollectionDecorator = (...args: any[]) => {
         return (target: typeof Collection): void => {
             MetadataStore.setCollectionMetadata(target, name, construct, options);
         }
+    }
+};
+
+export const index: IndexDecorator = (indexOrSpec: string | {[key: string]: 1 | -1}, options?: MongoDb.IndexOptions) => {
+    return (target: typeof Collection): void => {
+        MetadataStore.setCollectionIndexMetadata(target, indexOrSpec, options);
+    }
+};
+
+export const indexes = (...specs: Array<[string | {[key: string]: 1 | -1}, MongoDb.IndexOptions] | [string | {[key: string]: 1 | -1}]>) => {
+    return (target: typeof Collection): void => {
+        specs.forEach(spec => MetadataStore.setCollectionIndexMetadata(target, spec[0], spec[1] || {}));
     }
 };
 

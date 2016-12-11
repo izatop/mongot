@@ -1,15 +1,11 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
     "target": "es6",
-    "rootDir": "src/",
-    "sourceRoot": "src/",
+    "module": "commonjs",
     "sourceMap": true,
-    "outDir": "build/",
     "declaration": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "allowSyntheticDefaultImports": true,
     "noEmitOnError": true
   },
   "exclude": [

@@ -1,0 +1,49 @@
+"use strict";
+const StoreCollection = new WeakMap();
+const StoreCollectionIndexes = new WeakMap();
+const StoreType = new WeakMap();
+const StoreHooks = new WeakMap();
+class MetadataStore {
+    constructor() { }
+    static setCollectionMetadata(target, name, construct, options) {
+        StoreCollection.set(target, { name, construct, options });
+    }
+    static setCollectionIndexMetadata(target, indexOrSpec, options) {
+        StoreCollectionIndexes.set(target, [
+            ...(StoreCollectionIndexes.get(target) || []),
+            {
+                indexOrSpec,
+                options
+            }
+        ]);
+    }
+    static getCollectionIndexMetadata(target) {
+        return StoreCollectionIndexes.get(target);
+    }
+    static getCollectionMetadata(target) {
+        return StoreCollection.get(target);
+    }
+    static setSchemaPropertyMetadata(target, property, metadata) {
+        if (false === StoreType.has(target)) {
+            StoreType.set(target, new Map());
+        }
+        if (false === StoreType.get(target).has(property)) {
+            StoreType.get(target).set(property, {});
+        }
+        Object.assign(StoreType.get(target).get(property), metadata);
+    }
+    static getSchemaMetadata(target) {
+        return StoreType.get(target);
+    }
+    static getSchemaPropertyMetadata(target, property) {
+        return StoreType.get(target).get(property);
+    }
+    static setSchemaHookMetadata(target, method) {
+        StoreHooks.set(target, (StoreHooks.get(target) || []).concat([method]));
+    }
+    static getSchemaHookMetadata(target) {
+        return StoreHooks.get(target) || [];
+    }
+}
+exports.MetadataStore = MetadataStore;
+//# sourceMappingURL=store.js.map

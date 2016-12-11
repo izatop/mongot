@@ -32,5 +32,6 @@ test('Schema', async (t) => {
     document.getEventListener().emit('beforeInsert', []);
     t.equals(document.version, 1, 'TestDocument.version should be increased by beforeInsert hook');
     
+    await collection.drop();
     return (await collection.connection).disconnect();
 });

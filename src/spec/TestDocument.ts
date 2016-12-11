@@ -19,6 +19,7 @@ export class FooFragment extends SchemaFragment {
 }
 
 export class TestDocument extends SchemaDocument {
+    @prop randomUniqueKey: number;
     @prop @req name: string;
     
     @prop number: number = Math.random();
@@ -43,6 +44,7 @@ export class TestDocument extends SchemaDocument {
     
     @hook
     protected beforeInsert() {
+        this.randomUniqueKey = Math.random() * 90000000;
         this.version++;
     }
 }
