@@ -1,26 +1,34 @@
 # MongoT
 
-A lightweight typed MongoDb library for TypeScript.
+MongoT is a modern ODM library for MongoDb.
 
 ## Install
 
-`npm i -S mongot`
+Just type `npm i -S mongot` to install this package.
 
 ## Usage
+
+### Configure
+
+You may need TypeScript 2+ and enable `experimentalDecorators`,
+`emitDecoratorMetadata` in your `tsconfig.json`.
 
 ### Collections
 
 A collection is a class which support CRUD operations for own 
 documents.
 
-#### Create a collection example
+#### Create a collection
+
+Let's create a simple collection and name it as `UserCollection`:
 
 ```ts
 # UserCollection.ts
 import {Collection, collection} from 'mongot'; 
 import {UserDocument} from './UserDocument';
 
-@collection('users', UserDocument) // bind to a document schema
+@index('login', {unique: true})
+@collection('users', UserDocument)
 class UserCollection extends Collection<UserDocument> {
     findByEmail(email: string) {
         return this.findOne({email});
@@ -29,40 +37,37 @@ class UserCollection extends Collection<UserDocument> {
 
 ```
 
+Any collections should refer to their own document schemas so 
+we link the class `UserCollection` to a `users` collection in 
+database and a `UserDocument` schema by a `@collection` decorator.
+
 ### Document Schema
 
-Document schemas support following types: `string`, `boolean`, `number`,
-`date`, `Object` (any), `SchemaFragment` (also known as subdocument), 
-`array` type may contain any of these type. 
-`Buffer` didn't tested at this time.
+A document class describes schema fields and an entity getters/setters,
+event handlers and helper functions.
 
-Any type can be defined via a function decorator `@prop`:
+Schema supports these types: `string`, `boolean`, `number`, `date`,
+`Object`, `SchemaFragment` (also known as sub-document) 
+and `array`. A `buffer` type doesn't tested at this time.
 
-```ts
-    @prop fieldName: string
-```
+#### Create a document
 
-For arrays you need pass a proto to the function decorator `@prop`
-like as:
-
-```ts
-    @prop(Date) loginDates: SchemaArray<Date> = new SchemaArray();
-```
-
-#### Create a document example
+let's look at a `UserDocument` schema:
 
 ```ts
 # UserDocument.ts
-import {hook, prop, SchemaDocument} from 'mongot';
+import {SchemaDocument} from 'mongot';
+import {hook, prop, document} from 'mongot';
+import * as crypto from 'crypto';
 
-@unique({email: -1})
+@document
 class UserDocument extends SchemaDocument {
+    @prop email: string;
+    @prop password: string;
     @prop firstName: string;
     @prop lastName: string;
     
-    @prop @req email: string;
-    
-    @prop registered: Date = new Date(); // default value
+    @prop registered: Date = new Date();
     @prop updated: Date;
     
     @hook
@@ -71,8 +76,15 @@ class UserDocument extends SchemaDocument {
     }
     
     get displayName() {
-        return this.firstName + 
-            (this.lastName ? ' ' + this.lastName : '');
+        return [this.firstName, this.lastName]
+            .filter(x => !!x)
+            .join(' ');
+    }
+    
+    checkPassword(password: string) {
+        return this.password === crypto.createHash('sha1')
+            .update(password)
+            .digest('hex');
     }
 }
 
@@ -80,7 +92,8 @@ class UserDocument extends SchemaDocument {
 
 ### Create a repository
 
-To connect your collections to MongoDb you should create a repository:
+To connect collections to a MongoDb instance you should 
+create a repository:
 
 ```ts
 # index.ts
@@ -90,32 +103,57 @@ const options = {};
 const repository = new Repository('mongodb://localhost/test', options);
 ```
 
-The `Repository` class constructor has same arguments that MongoClient.
+The `Repository` class constructor has same arguments that 
+MongoClient.
 
 ### Querying
 
-Before querying you should get a collection instance via 
-`Repository.get`.
+Before querying you should get a connected collection:
 
 ```ts
 # index.ts
+import {Repository} from 'mongot';
+import {UserCollection} from './UserCollection';
+
+const options = {};
+const repository = new Repository('mongodb://localhost/test', options);
 
 async function main(): void {
     const users: UserCollection = repository.get(UserCollection);
     const user = await users.findByEmail('username@example.com');
     
-    // do something
+    // do something with user
     ...
 }
 ```
 
-## Documentation
+#### Partial
 
-Coming soon... maybe
+You can use projection and aggregation with partial schemas:
 
-## Vanilla
+```ts
+# partial.ts
+import {PartialDocumentFragment, prop} from 'mongot';
+import {UserCollection} from './UserCollection';
 
-You can if you know how it cook.
+// initialize repo ...
+
+@fragment
+class PartialUser extends PartialDocumentFragment {
+    @prop email: strng;
+    @prop created: Date;
+}
+
+(async function() {
+    const Users = repository.get(UserCollection);
+    const partialUser = await (await Users.find())
+        .map(doc => PartialUser.factory(doc))
+        .project<PartialUser>({email, created})
+        .fetch();
+    
+    console.log(partialUser instanceof PartialDocumentFragment); // true
+)();
+```
 
 ## License
 

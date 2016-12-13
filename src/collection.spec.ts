@@ -5,7 +5,7 @@ import {TestCollection} from "./spec/TestCollection";
 import {InsertResult, DeleteResult, UpdateResult} from "./collection/helpers";
 import {ObjectID} from "mongodb";
 import {TestDocument} from "./spec/TestDocument";
-import {PartialDocument} from "./";
+import {PartialDocumentFragment} from "./document";
 
 function setupMany(collection: TestCollection, documents: Array<TestDocument>, raw?: Object[]) {
     const data: Object[] = raw || ['foo', 'bar', 'baz'].map(name => ({name}));
@@ -52,7 +52,7 @@ test('Collection.findOne(query)', async (t) => {
     const documents = [];
     const foos = [];
     for (let i = 0; i < 10; i++) {
-        foos.push({foo: "foo" + i.toString()});
+        foos.push({name: "foo" + i.toString()});
     }
     
     await setupMany(collection, documents, foos);
@@ -75,7 +75,7 @@ test('Collection.find().fetch()', async (t) => {
     const foos = [];
     try {
         for (let i = 0; i < 100; i++) {
-            foos.push({foo: "foo" + i.toString()});
+            foos.push({name: "foo" + i.toString()});
         }
         
         await setupMany(collection, documents, foos);
@@ -104,8 +104,8 @@ test('Collection.find().project()', async (t) => {
     await setupMany(collection, documents, [{name: 'foo', number, version: 1}]);
     
     const result = await (await collection.find({})).project({name: 1, number: 1}).fetch();
-    t.ok(result instanceof PartialDocument, 'TestCollection.find({}).project().fetch() should return PartialDocument instead TestDocument');
-    t.same(result.toObject(), {name: 'foo', number, _id: result._id.toString()}, 'PartialDocument should have custom fields');
+    t.ok(result instanceof PartialDocumentFragment, 'TestCollection.find({}).project().fetch() should return PartialDocumentFragment instead TestDocument');
+    t.same(result.toObject(), {name: 'foo', number, _id: result._id.toString()}, 'PartialDocumentFragment should have custom fields');
     
     await collection.drop();
     return (await collection.connection).disconnect();
@@ -223,7 +223,7 @@ test('Collection.drop()', async (t) => {
     const collection = repo().get(TestCollection);
     await collection.connection;
     
-    await collection.insertOne({foo: 'foo'});
+    await collection.insertOne({name: 'foo'});
     t.ok(await collection.drop(), 'collection.drop() should drop an existent collection');
     await t.catch(collection.drop(), 'collection.drop() should throw an error so as collection is not existent');
     

@@ -1,8 +1,21 @@
 "use strict";
-const mongodb_1 = require("mongodb");
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
+            t[p[i]] = s[p[i]];
+    return t;
+};
 const assert_1 = require("assert");
+const mongodb_1 = require("mongodb");
 const store_1 = require("./metadata/store");
+const mutation_1 = require("./metadata/mutation");
 const events_1 = require("events");
+const identifiers = new WeakMap();
+const values = new WeakMap();
+exports.PRIMARY_KEY_NAME = '_id';
 class TypeCast {
     static cast(type, value, proto) {
         if (typeof value === "undefined" || value === null) {
@@ -111,26 +124,75 @@ class TypeCast {
     }
 }
 exports.TypeCast = TypeCast;
-class SchemaMetadata {
+class SchemaMetadata extends mutation_1.SchemaMutate {
     constructor(document) {
-        Object.defineProperty(this, Symbol.for('id'), { value: undefined, configurable: false, writable: true });
-        Object.defineProperty(this, '_id', {
+        super(document);
+        const metadata = this.getMetadata();
+        assert_1.ok(!!metadata, `Metadata doesn't exists for ${this.constructor.name}`);
+        let _id = undefined;
+        if (typeof document === 'object' && document !== null) {
+            _id = document[exports.PRIMARY_KEY_NAME];
+        }
+        values.set(this, {});
+        identifiers.set(this, _id);
+        // Shadow setter for _id
+        Object.defineProperty(this, Symbol.for(exports.PRIMARY_KEY_NAME), {
+            value: (_id) => identifiers.set(this, _id),
+            writable: false,
+            enumerable: false,
+            configurable: false
+        });
+        Object.defineProperty(this, exports.PRIMARY_KEY_NAME, {
             get() {
-                return this[Symbol.for('id')];
-            },
-            set(value) {
-                this[Symbol.for('id')] = value;
+                return identifiers.get(this);
             },
             enumerable: true,
             configurable: false
         });
-        Object.assign(this, document);
+        metadata.forEach(({ type, proto }, key) => {
+            Object.defineProperty(this, key, {
+                get: () => values.get(this)[key],
+                set: (newValue) => {
+                    values.get(this)[key] = TypeCast.cast(type, newValue, proto);
+                },
+                enumerable: true,
+                configurable: false
+            });
+        });
+    }
+    __mutate(document) {
+        assert_1.ok(typeof document && document !== null, `${this.constructor.name} an unexpected document type ${typeof document}`);
+        const properties = Object.assign({}, this.toObject(), document);
+        if (properties._id) {
+            let { _id } = properties;
+            if (typeof _id === 'string') {
+                _id = mongodb_1.ObjectID.createFromHexString(_id);
+            }
+            else if (false === _id instanceof mongodb_1.ObjectID) {
+                throw new Error(`Cannot convert "${_id}" to ObjectID`);
+            }
+            identifiers.set(this, _id);
+        }
+        Object.keys(properties)
+            .filter(field => field !== exports.PRIMARY_KEY_NAME)
+            .forEach(key => {
+            if (!Object.getOwnPropertyDescriptor(this, key)) {
+                throw new Error(`Schema ${this.constructor.name} unknown property: ${key}`);
+            }
+            this[key] = properties[key];
+        });
+        return this;
+    }
+    getMetadata() {
+        return store_1.MetadataStore.getSchemaMetadata((this['constructor']));
+    }
+    getDefinedHooks() {
+        return store_1.MetadataStore.getSchemaHookMetadata((this['constructor']));
     }
     toObject() {
         const properties = [];
         Object.keys(this)
             .forEach(key => {
-            // Allow assigned values only
             if (typeof this[key] !== 'undefined') {
                 properties.push({ [key]: TypeCast.toPlainValue(this[key]) });
             }
@@ -140,46 +202,8 @@ class SchemaMetadata {
     toJSON() {
         return this.toObject();
     }
-    upgrade(document) {
-        const merge = Object.assign({}, this, document);
-        const metadata = this.getMetadata();
-        assert_1.ok(!!metadata, `Metadata does not defined for ${this.constructor.name}`);
-        metadata.forEach(({ type, proto }, key) => {
-            const storageKey = Symbol(key);
-            Object.defineProperty(this, storageKey, { value: undefined, writable: true, configurable: false });
-            Object.defineProperty(this, key, {
-                get: () => this[storageKey],
-                set: (newValue) => {
-                    this[storageKey] = TypeCast.cast(type, newValue, proto);
-                },
-                enumerable: true,
-                configurable: false
-            });
-        });
-        Object.keys(merge).forEach(key => {
-            if (!Object.getOwnPropertyDescriptor(this, key)) {
-                throw new Error(`Unknown ${this.constructor.name} property: ${key}`);
-            }
-            this[key] = merge[key];
-        });
-    }
     static factory(document) {
-        const instance = new this(document);
-        instance.upgrade(document);
-        return instance;
-    }
-    getMetadata() {
-        if (this instanceof PartialDocument) {
-            const obj = Object.keys(this).filter(x => x !== '_id').map(x => ([x, { type: Object, proto: Object }]));
-            return new Map([...obj]);
-        }
-        return store_1.MetadataStore.getSchemaMetadata((this.constructor));
-    }
-    getPropertyMetadata(property) {
-        return store_1.MetadataStore.getSchemaPropertyMetadata((this.constructor), property);
-    }
-    getDefinedHooks() {
-        return store_1.MetadataStore.getSchemaHookMetadata((this.constructor));
+        return new this().__mutate(document);
     }
 }
 exports.SchemaMetadata = SchemaMetadata;
@@ -204,9 +228,25 @@ exports.SchemaDocument = SchemaDocument;
 class SchemaFragment extends SchemaMetadata {
 }
 exports.SchemaFragment = SchemaFragment;
-class PartialDocument extends SchemaDocument {
+class PartialDocumentFragment extends SchemaMetadata {
+    __mutate(document) {
+        assert_1.ok(typeof document && document !== null, `${this.constructor.name} an unexpected document type ${typeof document}`);
+        let _a = Object.assign({}, this.toObject(), document), { _id } = _a, properties = __rest(_a, ["_id"]);
+        if (typeof _id === 'string') {
+            _id = mongodb_1.ObjectID.createFromHexString(_id);
+        }
+        else if (false === _id instanceof mongodb_1.ObjectID) {
+            throw new Error(`Cannot convert "${_id}" to ObjectID`);
+        }
+        identifiers.set(this, _id);
+        Object.assign(this, properties);
+        return this;
+    }
+    getMetadata() {
+        return new Map();
+    }
 }
-exports.PartialDocument = PartialDocument;
+exports.PartialDocumentFragment = PartialDocumentFragment;
 class SchemaArray extends Array {
     constructor(values, cast) {
         super();
@@ -217,6 +257,9 @@ class SchemaArray extends Array {
     }
     toArray() {
         return [...this].map(value => TypeCast.toPlainValue(value));
+    }
+    toJSON() {
+        return this.toArray();
     }
     push(...items) {
         return super.push(...items.map(this.cast));

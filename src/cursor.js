@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const events_1 = require("events");
-const _1 = require("./");
+const document_1 = require("./document");
 class Cursor extends events_1.EventEmitter {
     constructor(cursor, transform) {
         super();
@@ -32,7 +32,7 @@ class Cursor extends events_1.EventEmitter {
         return this.cursor.count(applySkipLimit, options);
     }
     project(fields) {
-        this.cast = x => _1.PartialDocument.factory(x);
+        this.cast = x => document_1.PartialDocumentFragment.factory(x);
         if (typeof fields === 'string') {
             this.cursor.project(Object.assign({}, ...fields.split(/[\s,]*/).map(x => ({ [x]: 1 }))));
         }

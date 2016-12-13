@@ -1,4 +1,5 @@
 "use strict";
+const document_1 = require("../document");
 class UpdateResult {
     constructor({ matchedCount, modifiedCount, upsertedCount, upsertedId }) {
         this.matched = matchedCount;
@@ -14,7 +15,7 @@ class InsertResult {
     constructor({ insertedId }, document) {
         this.insertedId = insertedId;
         this.ref = document;
-        this.ref[Symbol.for('id')] = this.insertedId;
+        this.ref[Symbol.for(document_1.PRIMARY_KEY_NAME)](this.insertedId);
     }
 }
 exports.InsertResult = InsertResult;

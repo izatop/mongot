@@ -18,6 +18,10 @@ namespace Events {
     export const afterDelete = 'afterDelete';
 }
 
+// Partial pattern doesn't work with deep interfaces and doesn't work correctly with getters.
+//export type Partial<T> = Object & {[P in keyof T]?: T[P]};
+export type Partial<T> = Object;
+
 class Collection<TDocument extends SchemaDocument> {
     private readonly construct: typeof SchemaDocument;
     private readonly state: PromiseLike<MongoDb.Collection>;
@@ -99,15 +103,15 @@ class Collection<TDocument extends SchemaDocument> {
      * @param document
      * @returns {TDocument}
      */
-    factory(document?: Object): TDocument {
-        return this.construct.factory<TDocument>(document) as TDocument;
+    factory(document?: Partial<TDocument>): TDocument {
+        return this.construct.factory(document) as TDocument;
     }
     
     /**
      * @param document
      * @returns {Promise<UpdateResult | InsertResult>}
      */
-    save(document: TDocument | Object): Promise<UpdateResult | InsertResult<TDocument>> {
+    save(document: TDocument | Partial<TDocument>): Promise<UpdateResult | InsertResult<TDocument>> {
         ok(document && typeof document === 'object', 'Collection.save(document) require an object or an instance of SchemaDocument.');
     
         let prepared: TDocument = document as TDocument;
@@ -270,7 +274,7 @@ class Collection<TDocument extends SchemaDocument> {
     findOneAndDelete(filter: Object, options?: { projection?: Object, sort?: Object, maxTimeMS?: number }): Promise<FindAndModifyResult<TDocument>> {
         return this.queue(async (collection): Promise<FindAndModifyResult<TDocument>> => {
             const result = await collection.findOneAndDelete(this.filter(filter), options);
-            return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d) => this.factory(d)});
+            return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d: Partial<TDocument>) => this.factory(d)});
         });
     }
     
@@ -283,7 +287,7 @@ class Collection<TDocument extends SchemaDocument> {
     findOneAndReplace(filter: Object, replacement: Object, options?: MongoDb.FindOneAndReplaceOption): Promise<FindAndModifyResult<TDocument>> {
         return this.queue(async (collection): Promise<FindAndModifyResult<TDocument>> => {
             const result = await collection.findOneAndReplace(this.filter(filter), replacement, options);
-            return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d) => this.factory(d)});
+            return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d: Partial<TDocument>) => this.factory(d)});
         });
     }
     
@@ -296,7 +300,7 @@ class Collection<TDocument extends SchemaDocument> {
     findOneAndUpdate(filter: Object, update: Object, options?: MongoDb.FindOneAndReplaceOption): Promise<FindAndModifyResult<TDocument>> {
         return this.queue(async (collection): Promise<FindAndModifyResult<TDocument>> => {
             const result = await collection.findOneAndUpdate(this.filter(filter), update, options);
-            return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d) => this.factory(d)});
+            return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d: Partial<TDocument>) => this.factory(d)});
         });
     }
     
@@ -377,11 +381,13 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<InsertWriteOpResult>}
      */
-    insertMany(docs: TDocument[], options?: MongoDb.CollectionInsertManyOptions) {
+    insertMany(docs: Array<Partial<TDocument> | TDocument>, options?: MongoDb.CollectionInsertManyOptions) {
         return this.queue(async (collection): Promise<Array<InsertResult<TDocument>>> => {
-            const listeners = docs.map(doc => doc.getEventListener());
+            const documents = docs.map(doc => doc instanceof SchemaDocument ? doc : this.factory(doc));
+            const listeners = documents.map(doc => doc.getEventListener());
+
             listeners.forEach(listener => listener.emit(Events.beforeInsert));
-            const result = await collection.insertMany(docs.map(doc => this.createObjectReference(doc)), options);
+            const result = await collection.insertMany(documents.map(doc => this.createObjectReference(doc)), options);
             return result.ops.map(res => {
                 const inertResult = new InsertResult({insertedId: res._id}, res.unref());
                 listeners.map(listener => listener.emit(Events.afterInsert));
@@ -395,7 +401,7 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<InsertOneWriteOpResult>}
      */
-    insertOne(document: Object | TDocument, options?: MongoDb.CollectionInsertOneOptions) {
+    insertOne(document: Partial<TDocument> | TDocument, options?: MongoDb.CollectionInsertOneOptions) {
         return this.queue(async (collection): Promise<InsertResult<TDocument>> => {
             let prepared: TDocument;
             if (document instanceof SchemaDocument) {

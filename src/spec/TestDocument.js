@@ -10,11 +10,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 const document_1 = require("../document");
 const schema_1 = require("../schema");
-class ChildFragment extends document_1.SchemaFragment {
+const schema_2 = require("../schema");
+let ChildFragment = class ChildFragment extends document_1.SchemaFragment {
     get avg() {
         return (this.max - this.min) / 2;
     }
-}
+};
 __decorate([
     schema_1.prop,
     __metadata("design:type", Number)
@@ -23,26 +24,38 @@ __decorate([
     schema_1.prop,
     __metadata("design:type", Number)
 ], ChildFragment.prototype, "max", void 0);
+ChildFragment = __decorate([
+    schema_1.fragment,
+    __metadata("design:paramtypes", [])
+], ChildFragment);
 exports.ChildFragment = ChildFragment;
-class BarFragment extends document_1.SchemaFragment {
-}
+let BarFragment = class BarFragment extends document_1.SchemaFragment {
+};
 __decorate([
     schema_1.prop,
     __metadata("design:type", String)
 ], BarFragment.prototype, "baz", void 0);
+BarFragment = __decorate([
+    schema_1.fragment,
+    __metadata("design:paramtypes", [])
+], BarFragment);
 exports.BarFragment = BarFragment;
-class FooFragment extends document_1.SchemaFragment {
+let FooFragment = class FooFragment extends document_1.SchemaFragment {
     constructor() {
         super(...arguments);
         this.bar = new BarFragment({ baz: 'hello' });
     }
-}
+};
 __decorate([
     schema_1.prop,
     __metadata("design:type", BarFragment)
 ], FooFragment.prototype, "bar", void 0);
+FooFragment = __decorate([
+    schema_1.fragment,
+    __metadata("design:paramtypes", [])
+], FooFragment);
 exports.FooFragment = FooFragment;
-class TestDocument extends document_1.SchemaDocument {
+let TestDocument = class TestDocument extends document_1.SchemaDocument {
     constructor() {
         super(...arguments);
         this.number = Math.random();
@@ -60,7 +73,7 @@ class TestDocument extends document_1.SchemaDocument {
         this.randomUniqueKey = Math.random() * 90000000;
         this.version++;
     }
-}
+};
 __decorate([
     schema_1.prop,
     __metadata("design:type", Number)
@@ -111,5 +124,9 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], TestDocument.prototype, "beforeInsert", null);
+TestDocument = __decorate([
+    schema_2.document,
+    __metadata("design:paramtypes", [])
+], TestDocument);
 exports.TestDocument = TestDocument;
 //# sourceMappingURL=TestDocument.js.map

@@ -1,6 +1,8 @@
 /// <reference types="node" />
 import { ObjectID } from "mongodb";
+import { SchemaMutate } from './metadata/mutation';
 import { EventEmitter } from "events";
+export declare const PRIMARY_KEY_NAME = "_id";
 export declare class TypeCast {
     static cast(type: any, value: any, proto?: any): any;
     static toPlainValue(value: any): any;
@@ -12,20 +14,19 @@ export declare class TypeCast {
     static castToString(value: any): string;
     static castToNumber(value: any): number;
 }
-export declare class SchemaMetadata {
+export declare class SchemaMetadata extends SchemaMutate {
     readonly _id?: ObjectID;
     constructor(document?: Object);
-    toObject(): any;
-    toJSON(): any;
-    protected upgrade(document?: Object): void;
-    static factory<T extends SchemaMetadata>(document?: Object): T;
-    protected getMetadata(): any;
-    protected getPropertyMetadata(property: any): {
+    protected __mutate(document?: Object): this;
+    protected getMetadata(): Map<string | symbol, {
         type?: any;
         proto?: any;
         required?: boolean;
-    };
+    }>;
     protected getDefinedHooks(): string[];
+    toObject(): any;
+    toJSON(): any;
+    static factory<T extends SchemaMetadata>(document?: Object): T;
 }
 export declare class SchemaDocument extends SchemaMetadata {
     readonly _id: ObjectID;
@@ -40,12 +41,15 @@ export declare class SchemaDocument extends SchemaMetadata {
 export declare class SchemaFragment extends SchemaMetadata {
     readonly _id?: ObjectID;
 }
-export declare class PartialDocument extends SchemaDocument {
+export declare class PartialDocumentFragment extends SchemaMetadata {
+    protected __mutate(document: Object): this;
+    protected getMetadata(): Map<any, any>;
 }
 export declare class SchemaArray<T> extends Array<T> {
     protected readonly cast: (value: any) => T;
     constructor(values?: T[], cast?: (value: any) => T);
     toArray(): Array<T>;
+    toJSON(): T[];
     push(...items: Object[]): number;
     unshift(...items: Object[]): number;
     pull(value: T): void;

@@ -13,7 +13,7 @@ const cursor_1 = require("./cursor");
 const TestCollection_1 = require("./spec/TestCollection");
 const helpers_1 = require("./collection/helpers");
 const mongodb_1 = require("mongodb");
-const _1 = require("./");
+const document_1 = require("./document");
 function setupMany(collection, documents, raw) {
     const data = raw || ['foo', 'bar', 'baz'].map(name => ({ name }));
     data.map(x => collection.factory(x))
@@ -52,7 +52,7 @@ wrap_1.default('Collection.findOne(query)', (t) => __awaiter(this, void 0, void 
     const documents = [];
     const foos = [];
     for (let i = 0; i < 10; i++) {
-        foos.push({ foo: "foo" + i.toString() });
+        foos.push({ name: "foo" + i.toString() });
     }
     yield setupMany(collection, documents, foos);
     const index = Math.round(Math.random() * documents.length - 1);
@@ -71,7 +71,7 @@ wrap_1.default('Collection.find().fetch()', (t) => __awaiter(this, void 0, void 
     const foos = [];
     try {
         for (let i = 0; i < 100; i++) {
-            foos.push({ foo: "foo" + i.toString() });
+            foos.push({ name: "foo" + i.toString() });
         }
         yield setupMany(collection, documents, foos);
         const cursor = yield collection.find({});
@@ -96,8 +96,8 @@ wrap_1.default('Collection.find().project()', (t) => __awaiter(this, void 0, voi
     const number = Math.random();
     yield setupMany(collection, documents, [{ name: 'foo', number, version: 1 }]);
     const result = yield (yield collection.find({})).project({ name: 1, number: 1 }).fetch();
-    t.ok(result instanceof _1.PartialDocument, 'TestCollection.find({}).project().fetch() should return PartialDocument instead TestDocument');
-    t.same(result.toObject(), { name: 'foo', number, _id: result._id.toString() }, 'PartialDocument should have custom fields');
+    t.ok(result instanceof document_1.PartialDocumentFragment, 'TestCollection.find({}).project().fetch() should return PartialDocumentFragment instead TestDocument');
+    t.same(result.toObject(), { name: 'foo', number, _id: result._id.toString() }, 'PartialDocumentFragment should have custom fields');
     yield collection.drop();
     return (yield collection.connection).disconnect();
 }));
@@ -189,7 +189,7 @@ wrap_1.default('Collection.findOne()', (t) => __awaiter(this, void 0, void 0, fu
 wrap_1.default('Collection.drop()', (t) => __awaiter(this, void 0, void 0, function* () {
     const collection = connect_1.default().get(TestCollection_1.TestCollection);
     yield collection.connection;
-    yield collection.insertOne({ foo: 'foo' });
+    yield collection.insertOne({ name: 'foo' });
     t.ok(yield collection.drop(), 'collection.drop() should drop an existent collection');
     yield t.catch(collection.drop(), 'collection.drop() should throw an error so as collection is not existent');
     return (yield collection.connection).disconnect();

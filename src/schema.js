@@ -29,6 +29,14 @@ exports.indexes = (...specs) => {
         specs.forEach(spec => store_1.MetadataStore.setCollectionIndexMetadata(target, spec[0], spec[1] || {}));
     };
 };
+exports.document = (target) => {
+    return new Proxy(target, {
+        construct: (target, args) => {
+            return target.factory(args[0]);
+        }
+    });
+};
+exports.fragment = exports.document;
 function checkProto(type, proto, target, propertyKey) {
     if (Array.isPrototypeOf(type)) {
         assert_1.ok(proto !== type, `Schema ${target.constructor.name} should have a proto for an array of ${propertyKey} property`);

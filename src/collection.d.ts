@@ -3,6 +3,7 @@ import { SchemaDocument } from "./document";
 import { Cursor } from "./cursor";
 import { Connection } from "./connection";
 import { InsertResult, DeleteResult, UpdateResult, FindAndModifyResult } from "./collection/helpers";
+export declare type Partial<T> = Object;
 declare class Collection<TDocument extends SchemaDocument> {
     private readonly construct;
     private readonly state;
@@ -21,12 +22,12 @@ declare class Collection<TDocument extends SchemaDocument> {
      * @param document
      * @returns {TDocument}
      */
-    factory(document?: Object): TDocument;
+    factory(document?: Partial<TDocument>): TDocument;
     /**
      * @param document
      * @returns {Promise<UpdateResult | InsertResult>}
      */
-    save(document: TDocument | Object): Promise<UpdateResult | InsertResult<TDocument>>;
+    save(document: TDocument | Partial<TDocument>): Promise<UpdateResult | InsertResult<TDocument>>;
     /**
      * @param pipeline
      * @param options
@@ -180,13 +181,13 @@ declare class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<InsertWriteOpResult>}
      */
-    insertMany(docs: TDocument[], options?: MongoDb.CollectionInsertManyOptions): Promise<InsertResult<TDocument>[]>;
+    insertMany(docs: Array<Partial<TDocument> | TDocument>, options?: MongoDb.CollectionInsertManyOptions): Promise<InsertResult<TDocument>[]>;
     /**
      * @param document
      * @param options
      * @returns {Promise<InsertOneWriteOpResult>}
      */
-    insertOne(document: Object | TDocument, options?: MongoDb.CollectionInsertOneOptions): Promise<InsertResult<TDocument>>;
+    insertOne(document: Partial<TDocument> | TDocument, options?: MongoDb.CollectionInsertOneOptions): Promise<InsertResult<TDocument>>;
     /**
      * @TODO
      */

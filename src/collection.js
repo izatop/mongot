@@ -329,9 +329,10 @@ class Collection {
      */
     insertMany(docs, options) {
         return this.queue((collection) => __awaiter(this, void 0, void 0, function* () {
-            const listeners = docs.map(doc => doc.getEventListener());
+            const documents = docs.map(doc => doc instanceof document_1.SchemaDocument ? doc : this.factory(doc));
+            const listeners = documents.map(doc => doc.getEventListener());
             listeners.forEach(listener => listener.emit(Events.beforeInsert));
-            const result = yield collection.insertMany(docs.map(doc => this.createObjectReference(doc)), options);
+            const result = yield collection.insertMany(documents.map(doc => this.createObjectReference(doc)), options);
             return result.ops.map(res => {
                 const inertResult = new helpers_1.InsertResult({ insertedId: res._id }, res.unref());
                 listeners.map(listener => listener.emit(Events.afterInsert));

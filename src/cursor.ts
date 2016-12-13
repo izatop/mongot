@@ -1,6 +1,6 @@
 import * as MongoDb from 'mongodb';
 import {EventEmitter} from "events";
-import {PartialDocument} from "./";
+import {PartialDocumentFragment} from "./document";
 
 export interface Cursor<T extends Object> extends EventEmitter {
     on(event: 'data', listener: (document:T) => void): this;
@@ -37,7 +37,7 @@ export class Cursor<T extends Object> extends EventEmitter {
     }
     
     project(fields: Object | string) {
-        this.cast = x => PartialDocument.factory(x);
+        this.cast = x => PartialDocumentFragment.factory(x);
         if (typeof fields === 'string') {
             this.cursor.project(Object.assign({}, ...fields.split(/[\s,]*/).map(x => ({[x]: 1}))));
         } else {

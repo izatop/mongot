@@ -1,6 +1,8 @@
 import {SchemaFragment, SchemaFragmentArray, SchemaDocument, SchemaArray} from '../document';
-import {prop, req, hook} from '../schema';
+import {prop, req, hook, fragment} from '../schema';
+import {document} from "../schema";
 
+@fragment
 export class ChildFragment extends SchemaFragment {
     @prop min: number;
     @prop max: number;
@@ -10,14 +12,17 @@ export class ChildFragment extends SchemaFragment {
     }
 }
 
+@fragment
 export class BarFragment extends SchemaFragment {
     @prop baz: string;
 }
 
+@fragment
 export class FooFragment extends SchemaFragment {
     @prop bar: BarFragment = new BarFragment({baz: 'hello'});
 }
 
+@document
 export class TestDocument extends SchemaDocument {
     @prop randomUniqueKey: number;
     @prop @req name: string;

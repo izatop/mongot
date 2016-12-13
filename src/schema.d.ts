@@ -18,6 +18,8 @@ export declare const indexes: (...specs: ([string | {
 }, MongoDb.IndexOptions] | [string | {
     [key: string]: 1 | -1;
 }])[]) => (target: typeof Collection) => void;
+export declare const document: (target: any) => any;
+export declare const fragment: (target: any) => any;
 export interface PropDecorator {
     (target: any, propertyKey: string | symbol): void;
     <T>(type: T): PropertyDecorator;

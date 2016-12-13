@@ -1,5 +1,5 @@
 import * as MongoDb from 'mongodb';
-import {SchemaDocument} from "../document";
+import {SchemaDocument, PRIMARY_KEY_NAME} from "../document";
 
 export class UpdateResult {
     readonly matched: number;
@@ -24,7 +24,7 @@ export class InsertResult<TDocument extends SchemaDocument> {
     constructor({insertedId}: {insertedId: MongoDb.ObjectID}, document: TDocument) {
         this.insertedId = insertedId;
         this.ref = document;
-        this.ref[Symbol.for('id')] = this.insertedId;
+        this.ref[Symbol.for(PRIMARY_KEY_NAME)](this.insertedId);
     }
 }
 

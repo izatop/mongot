@@ -1,5 +1,9 @@
 *.ts
+!*.d.ts
 *.spec.js
 *.spec.map
 *.spec.d.ts
-!*.d.ts
+.idea
+src/spec
+tsconfig.json
+.npmignore

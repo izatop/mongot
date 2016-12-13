@@ -2,8 +2,9 @@ import "./reflect";
 import {ok} from "assert";
 import * as MongoDb from 'mongodb';
 import {MetadataStore} from './metadata/store';
-import {SchemaDocument, SchemaMetadata, SchemaFragment} from "./document";
+import {SchemaDocument, SchemaFragment} from "./document";
 import {Collection} from "./collection";
+import {SchemaMetadata} from "./document";
 
 export interface CollectionDecorator {
     (target: typeof Collection): void;
@@ -50,6 +51,16 @@ export const indexes = (...specs: Array<[string | {[key: string]: 1 | -1}, Mongo
         specs.forEach(spec => MetadataStore.setCollectionIndexMetadata(target, spec[0], spec[1] || {}));
     }
 };
+
+export const document = (target: any) => {
+    return new Proxy(target, {
+        construct: (target: typeof SchemaMetadata, args) => {
+            return target.factory(args[0]);
+        }
+    })
+};
+
+export const fragment = document;
 
 export interface PropDecorator {
     (target: any, propertyKey: string | symbol): void;
