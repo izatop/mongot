@@ -11,13 +11,27 @@ class Query {
             if (value instanceof mongodb_1.ObjectID) {
                 return value;
             }
-            if (Array.isArray(value)) {
+            else if (Array.isArray(value)) {
                 return value.map(x => this.normalize(x));
             }
-            return this.format(value);
+            else if (value instanceof Date) {
+                return value;
+            }
+            else if (Object.prototype.toString.call(value) === '[object Object]') {
+                return this.format(value);
+            }
+            return value;
         }
-        else if (typeof value === 'string' && value.length === 24 && /^[0-9a-f]{24}$/.test(value) === true) {
-            return mongodb_1.ObjectID.createFromHexString(value);
+        else if (typeof value === 'string') {
+            if (value.length === 24) {
+                if ('Z' === value.substr(-1) && true === /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(value)) {
+                    return new Date(value);
+                }
+                else if (true === /^[0-9a-f]{24}$/.test(value)) {
+                    return mongodb_1.ObjectID.createFromHexString(value);
+                }
+            }
+            return value;
         }
         return value;
     }
