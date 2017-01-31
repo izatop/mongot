@@ -24,6 +24,8 @@ const filterPlain = {
     }
 };
 
+const date1 = new Date();
+const date2 = new Date();
 const filterFormatted = {
     language: 'ru',
     status: true,
@@ -35,15 +37,15 @@ const filterFormatted = {
         ]
     },
     created: {
-        $gt: new Date,
-        $lt: new Date
+        $gt: date1,
+        $lt: date2
     },
     deep: {
         deep: {
             number,
             deep: {
                 object_id: ObjectID.createFromHexString('584dd5fa717425e09b46b79a'),
-                date: new Date()
+                date: date1
             }
         }
     }
@@ -56,6 +58,6 @@ test('Query', async (t) => {
     t.ok(new Query(class {}, {_id: ObjectID.createFromHexString('584dd5fa717425e09b46b79c')}).format()['_id'] instanceof ObjectID, 'ObjectID should be ok');
     t.ok(new Query(class {}, {date: (new Date).toISOString()}).format()['date'] instanceof Date, 'The ISODate string should be Date');
     t.ok(new Query(class {}, {date: new Date}).format()['date'] instanceof Date, 'Date should be ok');
-    
+
     t.same(new Query(class {}, filterPlain).format(), filterFormatted, 'Query format should return a valid object');
 });

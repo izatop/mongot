@@ -31,6 +31,8 @@ const filterPlain = {
         }
     }
 };
+const date1 = new Date();
+const date2 = new Date();
 const filterFormatted = {
     language: 'ru',
     status: true,
@@ -42,15 +44,15 @@ const filterFormatted = {
         ]
     },
     created: {
-        $gt: new Date,
-        $lt: new Date
+        $gt: date1,
+        $lt: date2
     },
     deep: {
         deep: {
             number,
             deep: {
                 object_id: mongodb_1.ObjectID.createFromHexString('584dd5fa717425e09b46b79a'),
-                date: new Date()
+                date: date1
             }
         }
     }
