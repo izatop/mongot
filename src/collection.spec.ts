@@ -235,8 +235,10 @@ test('Collection.updateOne()', async t => {
     const {ref} = await collection.insertOne({name: 'foo'});
     
     ref.number = 98;
-    const res1 = await collection.updateOne(ref, ref);
+    const res1 = await collection.updateOne(ref._id, ref);
+    const res11 = await collection.findOne(ref._id);
     t.ok(res1.modified === 1, 'collection.updateOne(ref, ref) should be ok');
+    t.same(ref.toObject(), res11.toObject(), 'collection.findOne(ref._id) should get a valid updated document');
     
     ref.number = 99;
     const res2 = await collection.updateOne(ref._id, ref);

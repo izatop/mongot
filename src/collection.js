@@ -4,8 +4,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
         function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments)).next());
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
+            t[p[i]] = s[p[i]];
+    return t;
 };
 const assert_1 = require("assert");
 const document_1 = require("./document");
@@ -439,14 +448,27 @@ class Collection {
      */
     updateOne(filter, update, options) {
         return this.queue((collection) => __awaiter(this, void 0, void 0, function* () {
+            let beforeUpdate = () => void 0;
+            let afterUpdate = () => void 0;
+            let updateSchema = update;
             if (filter instanceof document_1.SchemaDocument) {
                 const listener = filter.getEventListener();
-                listener.emit(Events.beforeUpdate);
-                const updateResult = new helpers_1.UpdateResult(yield collection.updateOne(this.filter(filter), update, options));
-                listener.emit(Events.afterUpdate);
-                return updateResult;
+                beforeUpdate = () => listener.emit(Events.beforeUpdate);
+                afterUpdate = () => listener.emit(Events.afterUpdate);
             }
-            return new helpers_1.UpdateResult(yield collection.updateOne(this.filter(filter), update, options));
+            if (update instanceof document_1.SchemaDocument) {
+                const listener = update.getEventListener();
+                beforeUpdate = () => listener.emit(Events.beforeUpdate);
+                afterUpdate = () => listener.emit(Events.afterUpdate);
+            }
+            beforeUpdate();
+            if (update instanceof document_1.SchemaDocument) {
+                const _a = update.toObject(), { _id } = _a, document = __rest(_a, ["_id"]);
+                updateSchema = document;
+            }
+            const updateResult = new helpers_1.UpdateResult(yield collection.updateOne(this.filter(filter), updateSchema, options));
+            afterUpdate();
+            return updateResult;
         }));
     }
 }

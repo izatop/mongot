@@ -25,8 +25,7 @@ __decorate([
     __metadata("design:type", Number)
 ], ChildFragment.prototype, "max", void 0);
 ChildFragment = __decorate([
-    schema_1.fragment,
-    __metadata("design:paramtypes", [])
+    schema_1.fragment
 ], ChildFragment);
 exports.ChildFragment = ChildFragment;
 let BarFragment = class BarFragment extends document_1.SchemaFragment {
@@ -36,8 +35,7 @@ __decorate([
     __metadata("design:type", String)
 ], BarFragment.prototype, "baz", void 0);
 BarFragment = __decorate([
-    schema_1.fragment,
-    __metadata("design:paramtypes", [])
+    schema_1.fragment
 ], BarFragment);
 exports.BarFragment = BarFragment;
 let FooFragment = class FooFragment extends document_1.SchemaFragment {
@@ -51,8 +49,7 @@ __decorate([
     __metadata("design:type", BarFragment)
 ], FooFragment.prototype, "bar", void 0);
 FooFragment = __decorate([
-    schema_1.fragment,
-    __metadata("design:paramtypes", [])
+    schema_1.fragment
 ], FooFragment);
 exports.FooFragment = FooFragment;
 let TestDocument = class TestDocument extends document_1.SchemaDocument {
@@ -125,8 +122,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], TestDocument.prototype, "beforeInsert", null);
 TestDocument = __decorate([
-    schema_2.document,
-    __metadata("design:paramtypes", [])
+    schema_2.document
 ], TestDocument);
 exports.TestDocument = TestDocument;
 //# sourceMappingURL=TestDocument.js.map

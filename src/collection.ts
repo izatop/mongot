@@ -409,9 +409,10 @@ class Collection<TDocument extends SchemaDocument> {
             } else {
                 prepared = this.factory(document);
             }
-            
+
             const listener = prepared.getEventListener();
             listener.emit(Events.beforeInsert);
+
             const insertResult = new InsertResult(await collection.insertOne(prepared.toObject(), options), prepared);
             listener.emit(Events.afterInsert);
             return insertResult;
@@ -504,18 +505,35 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<Promise<UpdateWriteOpResult>>}
      */
-    updateOne(filter: Object | SchemaDocument, update: Object, options?: Object): Promise<UpdateResult> {
+    updateOne(filter: Object | SchemaDocument, update: Object | SchemaDocument, options?: Object): Promise<UpdateResult> {
         return this.queue(async (collection): Promise<UpdateResult> => {
+            let beforeUpdate = () => void 0;
+            let afterUpdate = () => void 0;
+            let updateSchema = update;
+
             if (filter instanceof SchemaDocument) {
                 const listener = filter.getEventListener();
-                listener.emit(Events.beforeUpdate);
-                const updateResult = new UpdateResult(await collection.updateOne(this.filter(filter), update, options));
-                listener.emit(Events.afterUpdate);
-                
-                return updateResult;
+                beforeUpdate = () => listener.emit(Events.beforeUpdate);
+                afterUpdate = () => listener.emit(Events.afterUpdate);
             }
-            
-            return new UpdateResult(await collection.updateOne(this.filter(filter), update, options));
+
+            if (update instanceof SchemaDocument) {
+                const listener = update.getEventListener();
+                beforeUpdate = () => listener.emit(Events.beforeUpdate);
+                afterUpdate = () => listener.emit(Events.afterUpdate);
+            }
+
+            beforeUpdate();
+
+            if (update instanceof SchemaDocument) {
+                const {_id, ...document}: any = update.toObject();
+                updateSchema = document;
+            }
+
+            const updateResult = new UpdateResult(await collection.updateOne(this.filter(filter), updateSchema, options));
+            afterUpdate();
+
+            return updateResult;
         });
     }
 }

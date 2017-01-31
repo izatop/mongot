@@ -249,6 +249,6 @@ declare class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<Promise<UpdateWriteOpResult>>}
      */
-    updateOne(filter: Object | SchemaDocument, update: Object, options?: Object): Promise<UpdateResult>;
+    updateOne(filter: Object | SchemaDocument, update: Object | SchemaDocument, options?: Object): Promise<UpdateResult>;
 }
 export { Collection };

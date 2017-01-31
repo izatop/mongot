@@ -4,7 +4,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
         function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments)).next());
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
 const wrap_1 = require("./spec/wrap");
@@ -198,8 +198,10 @@ wrap_1.default('Collection.updateOne()', (t) => __awaiter(this, void 0, void 0, 
     const collection = connect_1.default().get(TestCollection_1.TestCollection);
     const { ref } = yield collection.insertOne({ name: 'foo' });
     ref.number = 98;
-    const res1 = yield collection.updateOne(ref, ref);
+    const res1 = yield collection.updateOne(ref._id, ref);
+    const res11 = yield collection.findOne(ref._id);
     t.ok(res1.modified === 1, 'collection.updateOne(ref, ref) should be ok');
+    t.same(ref.toObject(), res11.toObject(), 'collection.findOne(ref._id) should get a valid updated document');
     ref.number = 99;
     const res2 = yield collection.updateOne(ref._id, ref);
     t.ok(res2.modified === 1, 'collection.updateOne(ref._id, ref) should be ok');
