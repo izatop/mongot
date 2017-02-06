@@ -1,8 +1,8 @@
 import {ok} from 'assert';
-import {ObjectID} from "mongodb";
+import {ObjectID, Db} from "mongodb";
 import {MetadataStore} from "./metadata/store";
 import {SchemaMutate} from './metadata/mutation';
-import {EventEmitter} from "events";
+import {Collection} from "./collection";
 
 const identifiers = new WeakMap<SchemaMetadata, ObjectID>();
 const values = new WeakMap<SchemaMetadata, Object>();
@@ -151,7 +151,7 @@ export class TypeCast {
 
 export class SchemaMetadata extends SchemaMutate {
     readonly _id?: ObjectID;
-    
+
     constructor(document?: Object) {
         super(document);
 
@@ -227,7 +227,7 @@ export class SchemaMetadata extends SchemaMutate {
         return MetadataStore.getSchemaMetadata(<typeof SchemaMetadata> (this['constructor']));
     }
 
-    protected getDefinedHooks(): string[] {
+    protected getDefinedHooks() {
         return MetadataStore.getSchemaHookMetadata(<typeof SchemaMetadata> (this['constructor']));
     }
 
@@ -252,27 +252,17 @@ export class SchemaMetadata extends SchemaMutate {
     }
 }
 
-export class SchemaDocument extends SchemaMetadata {
+export abstract class SchemaDocument extends SchemaMetadata {
     readonly _id: ObjectID;
 
-    getEventListener(): EventEmitter {
-        const emitter = new EventEmitter();
-        this.getDefinedHooks().forEach(hook => {
-            if (typeof this[hook] === 'function') {
-                emitter.on(hook, () => this[hook]());
-            }
-        });
+    call(hook: string, collection: Collection<this>): Promise<any[]> {
+        const definedHooks = this.getDefinedHooks();
+        if (definedHooks && definedHooks.has(hook)) {
+            return Promise.all(definedHooks.get(hook).map(property => this[property](collection)));
+        }
 
-        return emitter;
+        return Promise.resolve([]);
     }
-
-    protected beforeInsert(): void {}
-    protected beforeUpdate(): void {}
-    protected beforeDelete(): void {}
-
-    protected afterInsert(): void {}
-    protected afterUpdate(): void {}
-    protected afterDelete(): void {}
 }
 
 export class SchemaFragment extends SchemaMetadata {

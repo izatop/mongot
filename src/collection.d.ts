@@ -3,11 +3,19 @@ import { SchemaDocument } from "./document";
 import { Cursor } from "./cursor";
 import { Connection } from "./connection";
 import { InsertResult, DeleteResult, UpdateResult, FindAndModifyResult } from "./collection/helpers";
+export declare namespace Events {
+    const beforeInsert = "beforeInsert";
+    const beforeUpdate = "beforeUpdate";
+    const beforeDelete = "beforeDelete";
+    const afterInsert = "afterInsert";
+    const afterUpdate = "afterUpdate";
+    const afterDelete = "afterDelete";
+}
 export declare type Partial<T> = Object;
 declare class Collection<TDocument extends SchemaDocument> {
     private readonly construct;
     private readonly state;
-    private readonly name;
+    readonly name: string;
     readonly connection: Promise<Connection>;
     constructor(connection: Promise<Connection>, name?: string, options?: MongoDb.CollectionOptions | MongoDb.CollectionCreateOptions, construct?: typeof SchemaDocument);
     readonly collection: PromiseLike<MongoDb.Collection>;
@@ -31,19 +39,19 @@ declare class Collection<TDocument extends SchemaDocument> {
     /**
      * @param pipeline
      * @param options
-     * @returns {undefined}
+     * @returns {any}
      */
     aggregate(pipeline: Object[], options?: MongoDb.CollectionAggregationOptions): Promise<MongoDb.AggregationCursor>;
     /**
      * @param operations
      * @param options
-     * @returns {undefined}
+     * @returns {any}
      */
     bulkWrite<TResult extends MongoDb.BulkWriteResult>(operations: Object[], options: MongoDb.CollectionBluckWriteOptions): Promise<TResult>;
     /**
      * @param query
      * @param options
-     * @returns {undefined}
+     * @returns {Promise<number>}
      */
     count(query: Object, options: MongoDb.MongoCountPreferences): Promise<number>;
     /**

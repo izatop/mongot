@@ -4,8 +4,8 @@ import {TestCollection} from './spec/TestCollection';
 import {TestDocument, ChildFragment} from './spec/TestDocument';
 import {TestBase} from "./spec/TestBase";
 import {MetadataStore} from "./metadata/store";
-import {SchemaMetadata} from "./document";
 import {TestExtend} from "./spec/TestExtend";
+import {Events} from "./collection";
 
 test('Schema', async (t) => {
     const collection = repo().get(TestCollection);
@@ -33,7 +33,7 @@ test('Schema', async (t) => {
     t.equals(document.deep.bar.baz, 'hello', 'TestDocument.deep.bar.baz should match');
     t.equals(document.toJSON().date.toString(), document.date.toString(), 'TestDocument schema should serialize date to string');
     
-    document.getEventListener().emit('beforeInsert', []);
+    await document.call(Events.beforeInsert, collection);
     t.equals(document.version, 1, 'TestDocument.version should be increased by beforeInsert hook');
     
     await collection.drop();

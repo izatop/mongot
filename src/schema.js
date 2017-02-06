@@ -1,8 +1,17 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 require("./reflect");
 const assert_1 = require("assert");
 const store_1 = require("./metadata/store");
 const document_1 = require("./document");
+const collection_1 = require("./collection");
 exports.collection = (...args) => {
     assert_1.ok(args.length > 0 && args.length < 4, 'Mapper @collection has invalid number of arguments: ' + args.length);
     assert_1.ok(typeof args[0] === 'function' || typeof args[0] === 'string', 'Mapper @collection has invalid type of first argument');
@@ -80,7 +89,24 @@ exports.preq = (...args) => {
         };
     }
 };
-exports.hook = (target, propertyKey) => {
+exports.hook = (...args) => {
+    if (typeof args[0] === 'string') {
+        return (target, propertyKey) => {
+            store_1.MetadataStore.setSchemaHookMetadata(target.constructor, args[0], propertyKey);
+        };
+    }
+    const [target, propertyKey] = args;
     store_1.MetadataStore.setSchemaHookMetadata(target.constructor, propertyKey);
+};
+exports.auto = (fn) => {
+    return (target, propertyKey) => {
+        const property = `$_generated_auto_before_insert_${propertyKey}$`;
+        target[property] = function (collection) {
+            return __awaiter(this, void 0, void 0, function* () {
+                this[propertyKey] = yield fn(collection);
+            });
+        };
+        store_1.MetadataStore.setSchemaHookMetadata(target.constructor, collection_1.Events.beforeInsert, property);
+    };
 };
 //# sourceMappingURL=schema.js.map

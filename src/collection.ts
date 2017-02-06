@@ -8,7 +8,7 @@ import {InsertResult, DeleteResult, UpdateResult, FindAndModifyResult} from "./c
 import {Query} from "./query";
 import {ObjectID} from "mongodb";
 
-namespace Events {
+export namespace Events {
     export const beforeInsert = 'beforeInsert';
     export const beforeUpdate = 'beforeUpdate';
     export const beforeDelete = 'beforeDelete';
@@ -25,7 +25,8 @@ export type Partial<T> = Object;
 class Collection<TDocument extends SchemaDocument> {
     private readonly construct: typeof SchemaDocument;
     private readonly state: PromiseLike<MongoDb.Collection>;
-    private readonly name: string;
+
+    public readonly name: string;
     public readonly connection: Promise<Connection>;
     
     constructor(
@@ -137,7 +138,7 @@ class Collection<TDocument extends SchemaDocument> {
     /**
      * @param pipeline
      * @param options
-     * @returns {undefined}
+     * @returns {any}
      */
     aggregate(pipeline: Object[], options?: MongoDb.CollectionAggregationOptions) {
         return this.queue(collection => collection.aggregate(pipeline, options));
@@ -146,7 +147,7 @@ class Collection<TDocument extends SchemaDocument> {
     /**
      * @param operations
      * @param options
-     * @returns {undefined}
+     * @returns {any}
      */
     bulkWrite<TResult extends MongoDb.BulkWriteResult>(operations: Object[], options: MongoDb.CollectionBluckWriteOptions): Promise<TResult> {
         return this.queue(collection => collection.bulkWrite(operations, options));
@@ -155,7 +156,7 @@ class Collection<TDocument extends SchemaDocument> {
     /**
      * @param query
      * @param options
-     * @returns {undefined}
+     * @returns {Promise<number>}
      */
     count(query: Object, options: MongoDb.MongoCountPreferences): Promise<number> {
         return this.queue(collection => collection.count(this.normalizeQuery(query), options));
@@ -195,10 +196,9 @@ class Collection<TDocument extends SchemaDocument> {
     deleteOne(filter: Object | SchemaDocument, options?: { w?: number | string, wtimmeout?: number, j?: boolean, bypassDocumentValidation?: boolean }) {
         return this.queue(async (collection): Promise<DeleteResult> => {
             if (filter instanceof SchemaDocument) {
-                const listener = filter.getEventListener();
-                listener.emit(Events.beforeDelete);
+                await filter.call(Events.beforeDelete, this);
                 const deleteResult = new DeleteResult(await collection.deleteOne(this.filter(filter), options));
-                listener.emit(Events.afterDelete);
+                await filter.call(Events.afterDelete, this);
                 
                 return deleteResult;
             }
@@ -384,15 +384,14 @@ class Collection<TDocument extends SchemaDocument> {
     insertMany(docs: Array<Partial<TDocument> | TDocument>, options?: MongoDb.CollectionInsertManyOptions) {
         return this.queue(async (collection): Promise<Array<InsertResult<TDocument>>> => {
             const documents = docs.map(doc => doc instanceof SchemaDocument ? doc : this.factory(doc));
-            const listeners = documents.map(doc => doc.getEventListener());
-
-            listeners.forEach(listener => listener.emit(Events.beforeInsert));
+            await Promise.all(documents.map(document => document.call(Events.beforeInsert, this)));
             const result = await collection.insertMany(documents.map(doc => this.createObjectReference(doc)), options);
-            return result.ops.map(res => {
-                const inertResult = new InsertResult({insertedId: res._id}, res.unref());
-                listeners.map(listener => listener.emit(Events.afterInsert));
-                return inertResult;
-            })
+            const insertResultList = result.ops.map(res => {
+                return new InsertResult({insertedId: res._id}, res.unref());
+            });
+
+            await Promise.all(insertResultList.map(({ref}) => ref.call(Events.afterInsert, this)));
+            return insertResultList;
         });
     }
     
@@ -403,18 +402,17 @@ class Collection<TDocument extends SchemaDocument> {
      */
     insertOne(document: Partial<TDocument> | TDocument, options?: MongoDb.CollectionInsertOneOptions) {
         return this.queue(async (collection): Promise<InsertResult<TDocument>> => {
-            let prepared: TDocument;
+            let formalized: TDocument;
             if (document instanceof SchemaDocument) {
-                prepared = document;
+                formalized = document;
             } else {
-                prepared = this.factory(document);
+                formalized = this.factory(document);
             }
 
-            const listener = prepared.getEventListener();
-            listener.emit(Events.beforeInsert);
+            await formalized.call(Events.beforeInsert, this);
+            const insertResult = new InsertResult(await collection.insertOne(formalized.toObject(), options), formalized);
+            await formalized.call(Events.afterInsert, this);
 
-            const insertResult = new InsertResult(await collection.insertOne(prepared.toObject(), options), prepared);
-            listener.emit(Events.afterInsert);
             return insertResult;
         });
     }
@@ -512,18 +510,16 @@ class Collection<TDocument extends SchemaDocument> {
             let updateSchema = update;
 
             if (filter instanceof SchemaDocument) {
-                const listener = filter.getEventListener();
-                beforeUpdate = () => listener.emit(Events.beforeUpdate);
-                afterUpdate = () => listener.emit(Events.afterUpdate);
+                beforeUpdate = () => filter.call(Events.beforeUpdate, this);
+                afterUpdate = () => filter.call(Events.afterUpdate, this);
             }
 
             if (update instanceof SchemaDocument) {
-                const listener = update.getEventListener();
-                beforeUpdate = () => listener.emit(Events.beforeUpdate);
-                afterUpdate = () => listener.emit(Events.afterUpdate);
+                beforeUpdate = () => update.call(Events.beforeUpdate, this);
+                afterUpdate = () => update.call(Events.afterUpdate, this);
             }
 
-            beforeUpdate();
+            await beforeUpdate();
 
             if (update instanceof SchemaDocument) {
                 const {_id, ...document}: any = update.toObject();
@@ -531,7 +527,7 @@ class Collection<TDocument extends SchemaDocument> {
             }
 
             const updateResult = new UpdateResult(await collection.updateOne(this.filter(filter), updateSchema, options));
-            afterUpdate();
+            await afterUpdate();
 
             return updateResult;
         });

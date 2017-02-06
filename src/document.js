@@ -12,7 +12,6 @@ const assert_1 = require("assert");
 const mongodb_1 = require("mongodb");
 const store_1 = require("./metadata/store");
 const mutation_1 = require("./metadata/mutation");
-const events_1 = require("events");
 const identifiers = new WeakMap();
 const values = new WeakMap();
 exports.PRIMARY_KEY_NAME = '_id';
@@ -210,21 +209,13 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
 }
 exports.SchemaMetadata = SchemaMetadata;
 class SchemaDocument extends SchemaMetadata {
-    getEventListener() {
-        const emitter = new events_1.EventEmitter();
-        this.getDefinedHooks().forEach(hook => {
-            if (typeof this[hook] === 'function') {
-                emitter.on(hook, () => this[hook]());
-            }
-        });
-        return emitter;
+    call(hook, collection) {
+        const definedHooks = this.getDefinedHooks();
+        if (definedHooks && definedHooks.has(hook)) {
+            return Promise.all(definedHooks.get(hook).map(property => this[property](collection)));
+        }
+        return Promise.resolve([]);
     }
-    beforeInsert() { }
-    beforeUpdate() { }
-    beforeDelete() { }
-    afterInsert() { }
-    afterUpdate() { }
-    afterDelete() { }
 }
 exports.SchemaDocument = SchemaDocument;
 class SchemaFragment extends SchemaMetadata {

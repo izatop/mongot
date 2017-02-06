@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 const document_1 = require("../document");
 const schema_1 = require("../schema");
 const schema_2 = require("../schema");
+const helpers_1 = require("../collection/helpers");
 let ChildFragment = class ChildFragment extends document_1.SchemaFragment {
     get avg() {
         return (this.max - this.min) / 2;
@@ -52,6 +53,10 @@ FooFragment = __decorate([
     schema_1.fragment
 ], FooFragment);
 exports.FooFragment = FooFragment;
+function async(fn) {
+    return (target, prop) => {
+    };
+}
 let TestDocument = class TestDocument extends document_1.SchemaDocument {
     constructor() {
         super(...arguments);
@@ -71,6 +76,11 @@ let TestDocument = class TestDocument extends document_1.SchemaDocument {
         this.version++;
     }
 };
+__decorate([
+    schema_1.auto(helpers_1.createNextAutoIncrementNumber),
+    schema_1.prop,
+    __metadata("design:type", Number)
+], TestDocument.prototype, "autoIncrement", void 0);
 __decorate([
     schema_1.prop,
     __metadata("design:type", Number)

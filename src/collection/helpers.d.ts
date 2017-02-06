@@ -1,5 +1,6 @@
 import * as MongoDb from 'mongodb';
 import { SchemaDocument } from "../document";
+import { Collection } from "../collection";
 export declare class UpdateResult {
     readonly matched: number;
     readonly modified: number;
@@ -31,3 +32,4 @@ export declare class FindAndModifyResult<TDocument extends SchemaDocument> {
     has(): boolean;
     get(): TDocument;
 }
+export declare const createNextAutoIncrementNumber: <T extends SchemaDocument>(collection: Collection<T>) => Promise<number>;

@@ -11,6 +11,7 @@ export declare class FooFragment extends SchemaFragment {
     bar: BarFragment;
 }
 export declare class TestDocument extends SchemaDocument {
+    autoIncrement: number;
     randomUniqueKey: number;
     name: string;
     number: number;

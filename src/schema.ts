@@ -3,7 +3,7 @@ import {ok} from "assert";
 import * as MongoDb from 'mongodb';
 import {MetadataStore} from './metadata/store';
 import {SchemaDocument, SchemaFragment} from "./document";
-import {Collection} from "./collection";
+import {Collection, Events} from "./collection";
 import {SchemaMetadata} from "./document";
 
 export interface CollectionDecorator {
@@ -31,7 +31,7 @@ export const collection: CollectionDecorator = (...args: any[]) => {
         MetadataStore.setCollectionMetadata(constructor, name);
     } else {
         const name = args.shift();
-        const construct: typeof SchemaDocument = args.shift();
+        const construct: typeof SchemaMetadata = args.shift();
         const options: Object = args.shift() || {};
         
         return (target: typeof Collection): void => {
@@ -135,6 +135,24 @@ export const preq:PropRequiredDecorator = (...args: any[]) => {
     }
 };
 
-export const hook = (target: any, propertyKey: string) => {
+export const hook = (...args: any[]) => {
+    if (typeof args[0] === 'string') {
+        return (target: any, propertyKey: string) => {
+            MetadataStore.setSchemaHookMetadata(target.constructor, args[0], propertyKey);
+        }
+    }
+
+    const [target, propertyKey] = args;
     MetadataStore.setSchemaHookMetadata(target.constructor, propertyKey);
+};
+
+export const auto = (fn: Function) => {
+    return (target: any, propertyKey: string) => {
+        const property = `$_generated_auto_before_insert_${propertyKey}$`;
+        target[property] = async function (collection) {
+            this[propertyKey] = await fn(collection);
+        };
+
+        MetadataStore.setSchemaHookMetadata(target.constructor, Events.beforeInsert, property);
+    }
 };

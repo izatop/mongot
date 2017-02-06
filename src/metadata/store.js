@@ -46,11 +46,17 @@ class MetadataStore {
     static getSchemaPropertyMetadata(target, property) {
         return StoreType.get(target).get(property);
     }
-    static setSchemaHookMetadata(target, method) {
-        StoreHooks.set(target, (StoreHooks.get(target) || []).concat([method]));
+    static setSchemaHookMetadata(target, hook, property) {
+        if (false === StoreHooks.has(target)) {
+            StoreHooks.set(target, new Map());
+        }
+        if (false === StoreHooks.get(target).has(hook)) {
+            StoreHooks.get(target).set(hook, []);
+        }
+        StoreHooks.get(target).get(hook).push(property || hook);
     }
     static getSchemaHookMetadata(target) {
-        return StoreHooks.get(target) || [];
+        return StoreHooks.get(target);
     }
 }
 exports.MetadataStore = MetadataStore;

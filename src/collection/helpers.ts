@@ -1,5 +1,6 @@
 import * as MongoDb from 'mongodb';
 import {SchemaDocument, PRIMARY_KEY_NAME} from "../document";
+import {Collection} from "../collection";
 
 export class UpdateResult {
     readonly matched: number;
@@ -55,3 +56,21 @@ export class FindAndModifyResult<TDocument extends SchemaDocument> {
         return this.ref;
     }
 }
+
+export const createNextAutoIncrementNumber = async <T extends SchemaDocument>(collection: Collection<T>): Promise<number> => {
+    const {db} = await collection.connection;
+    const res = await db.collection('mongot.counter').findOneAndUpdate(
+        {
+            _id: collection.name
+        },
+        {
+            $inc: {seq: 1}
+        },
+        {
+            upsert: true,
+            returnOriginal: false
+        }
+    );
+
+    return res.value.seq as number;
+};

@@ -12,7 +12,7 @@ function setupMany(collection: TestCollection, documents: Array<TestDocument>, r
     data.map(x => collection.factory(x))
         .forEach(x => documents.push(x));
     
-    return collection.deleteMany({}).then(result => collection.insertMany(documents));
+    return collection.insertMany(documents);
 }
 
 test('Collection.find()', async (t) => {
@@ -30,19 +30,15 @@ test('Collection.find().fetchAll()', async (t) => {
     const collection = repo().get(TestCollection);
     const documents = [];
     const foos = [];
-    try {
-        for (let i = 0; i < 100; i++) {
-            foos.push({name: "foo" + i.toString()});
-        }
-        
-        await setupMany(collection, documents, foos);
-        const cursor = await collection.find({});
-        const result = await cursor.fetchAll();
-        t.equal(result.length, 100, 'result.fetchAll() should return 100 documents');
-    } catch (error) {
-        t.fail(error);
+    for (let i = 0; i < 100; i++) {
+        foos.push({name: "foo" + i.toString()});
     }
-    
+
+    await setupMany(collection, documents, foos);
+    const cursor = await collection.find({});
+    const result = await cursor.fetchAll();
+    t.equal(result.length, 100, 'result.fetchAll() should return 100 documents');
+
     await collection.drop();
     return (await collection.connection).disconnect();
 });
@@ -118,6 +114,7 @@ test('Collection.insertOne()', async (t) => {
     const inserted = await collection.findOne(result.insertedId);
     t.ok(result instanceof InsertResult, 'collection.insertOne() should return InsertResult');
     t.ok(result.insertedId instanceof ObjectID, 'result.insertedId should be ObjectID');
+    t.ok(typeof document.autoIncrement === 'number', 'TestDocument.autoIncrement should be set');
     t.equals(document._id, result.insertedId, 'TestDocument should have insertedId');
     t.equals(document, result.ref, 'result.ref should be TestDocument');
     t.equals(document.version, 1, 'TestDocument.beforeInsert should be fired');
@@ -187,7 +184,7 @@ test('Collection.findOneAndUpdate/Replace/Delete()', async (t) => {
     t.same(findOneAndUpdateResult.get().name, 'foo', 'findOneAndUpdateResult should contain an original document');
     t.equal(findOneAndReplaceResult.has(), true, 'findOneAndReplaceResult.has() should return true');
     t.same(findOneAndReplaceResult.get().name, 'bar1', 'findOneAndReplaceResult should contain a replaced document');
-    t.same(findOneAndDeleteResult.get().toObject(), documents[2].toObject(), 'findOneAndDeleteResult should contain a deleted document');
+    t.same(findOneAndDeleteResult.get().toObject()._id, documents[2].toObject()._id, 'findOneAndDeleteResult should contain a deleted document');
     
     await collection.drop();
     return (await collection.connection).disconnect();

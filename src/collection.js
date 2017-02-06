@@ -31,7 +31,7 @@ var Events;
     Events.afterInsert = 'afterInsert';
     Events.afterUpdate = 'afterUpdate';
     Events.afterDelete = 'afterDelete';
-})(Events || (Events = {}));
+})(Events = exports.Events || (exports.Events = {}));
 class Collection {
     constructor(connection, name, options, construct) {
         const metadata = store_1.MetadataStore.getCollectionMetadata(this.constructor) || {};
@@ -124,7 +124,7 @@ class Collection {
     /**
      * @param pipeline
      * @param options
-     * @returns {undefined}
+     * @returns {any}
      */
     aggregate(pipeline, options) {
         return this.queue(collection => collection.aggregate(pipeline, options));
@@ -132,7 +132,7 @@ class Collection {
     /**
      * @param operations
      * @param options
-     * @returns {undefined}
+     * @returns {any}
      */
     bulkWrite(operations, options) {
         return this.queue(collection => collection.bulkWrite(operations, options));
@@ -140,7 +140,7 @@ class Collection {
     /**
      * @param query
      * @param options
-     * @returns {undefined}
+     * @returns {Promise<number>}
      */
     count(query, options) {
         return this.queue(collection => collection.count(this.normalizeQuery(query), options));
@@ -174,10 +174,9 @@ class Collection {
     deleteOne(filter, options) {
         return this.queue((collection) => __awaiter(this, void 0, void 0, function* () {
             if (filter instanceof document_1.SchemaDocument) {
-                const listener = filter.getEventListener();
-                listener.emit(Events.beforeDelete);
+                yield filter.call(Events.beforeDelete, this);
                 const deleteResult = new helpers_1.DeleteResult(yield collection.deleteOne(this.filter(filter), options));
-                listener.emit(Events.afterDelete);
+                yield filter.call(Events.afterDelete, this);
                 return deleteResult;
             }
             return new helpers_1.DeleteResult(yield collection.deleteOne(filter, options));
@@ -339,14 +338,13 @@ class Collection {
     insertMany(docs, options) {
         return this.queue((collection) => __awaiter(this, void 0, void 0, function* () {
             const documents = docs.map(doc => doc instanceof document_1.SchemaDocument ? doc : this.factory(doc));
-            const listeners = documents.map(doc => doc.getEventListener());
-            listeners.forEach(listener => listener.emit(Events.beforeInsert));
+            yield Promise.all(documents.map(document => document.call(Events.beforeInsert, this)));
             const result = yield collection.insertMany(documents.map(doc => this.createObjectReference(doc)), options);
-            return result.ops.map(res => {
-                const inertResult = new helpers_1.InsertResult({ insertedId: res._id }, res.unref());
-                listeners.map(listener => listener.emit(Events.afterInsert));
-                return inertResult;
+            const insertResultList = result.ops.map(res => {
+                return new helpers_1.InsertResult({ insertedId: res._id }, res.unref());
             });
+            yield Promise.all(insertResultList.map(({ ref }) => ref.call(Events.afterInsert, this)));
+            return insertResultList;
         }));
     }
     /**
@@ -356,17 +354,16 @@ class Collection {
      */
     insertOne(document, options) {
         return this.queue((collection) => __awaiter(this, void 0, void 0, function* () {
-            let prepared;
+            let formalized;
             if (document instanceof document_1.SchemaDocument) {
-                prepared = document;
+                formalized = document;
             }
             else {
-                prepared = this.factory(document);
+                formalized = this.factory(document);
             }
-            const listener = prepared.getEventListener();
-            listener.emit(Events.beforeInsert);
-            const insertResult = new helpers_1.InsertResult(yield collection.insertOne(prepared.toObject(), options), prepared);
-            listener.emit(Events.afterInsert);
+            yield formalized.call(Events.beforeInsert, this);
+            const insertResult = new helpers_1.InsertResult(yield collection.insertOne(formalized.toObject(), options), formalized);
+            yield formalized.call(Events.afterInsert, this);
             return insertResult;
         }));
     }
@@ -452,22 +449,20 @@ class Collection {
             let afterUpdate = () => void 0;
             let updateSchema = update;
             if (filter instanceof document_1.SchemaDocument) {
-                const listener = filter.getEventListener();
-                beforeUpdate = () => listener.emit(Events.beforeUpdate);
-                afterUpdate = () => listener.emit(Events.afterUpdate);
+                beforeUpdate = () => filter.call(Events.beforeUpdate, this);
+                afterUpdate = () => filter.call(Events.afterUpdate, this);
             }
             if (update instanceof document_1.SchemaDocument) {
-                const listener = update.getEventListener();
-                beforeUpdate = () => listener.emit(Events.beforeUpdate);
-                afterUpdate = () => listener.emit(Events.afterUpdate);
+                beforeUpdate = () => update.call(Events.beforeUpdate, this);
+                afterUpdate = () => update.call(Events.afterUpdate, this);
             }
-            beforeUpdate();
+            yield beforeUpdate();
             if (update instanceof document_1.SchemaDocument) {
                 const _a = update.toObject(), { _id } = _a, document = __rest(_a, ["_id"]);
                 updateSchema = document;
             }
             const updateResult = new helpers_1.UpdateResult(yield collection.updateOne(this.filter(filter), updateSchema, options));
-            afterUpdate();
+            yield afterUpdate();
             return updateResult;
         }));
     }

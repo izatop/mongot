@@ -14,6 +14,7 @@ const TestDocument_1 = require("./spec/TestDocument");
 const TestBase_1 = require("./spec/TestBase");
 const store_1 = require("./metadata/store");
 const TestExtend_1 = require("./spec/TestExtend");
+const collection_1 = require("./collection");
 wrap_1.default('Schema', (t) => __awaiter(this, void 0, void 0, function* () {
     const collection = connect_1.default().get(TestCollection_1.TestCollection);
     const document = collection.factory({
@@ -37,7 +38,7 @@ wrap_1.default('Schema', (t) => __awaiter(this, void 0, void 0, function* () {
     t.equals(document.sum, 10, 'TestDocument.sum should match');
     t.equals(document.deep.bar.baz, 'hello', 'TestDocument.deep.bar.baz should match');
     t.equals(document.toJSON().date.toString(), document.date.toString(), 'TestDocument schema should serialize date to string');
-    document.getEventListener().emit('beforeInsert', []);
+    yield document.call(collection_1.Events.beforeInsert, collection);
     t.equals(document.version, 1, 'TestDocument.version should be increased by beforeInsert hook');
     yield collection.drop();
     return (yield collection.connection).disconnect();

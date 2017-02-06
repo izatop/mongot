@@ -30,6 +30,6 @@ export declare class MetadataStore {
         proto?: any;
         required?: boolean;
     };
-    static setSchemaHookMetadata(target: typeof SchemaMetadata, method: string): void;
-    static getSchemaHookMetadata(target: typeof SchemaMetadata): string[];
+    static setSchemaHookMetadata(target: typeof SchemaMetadata, hook: string, property?: string): void;
+    static getSchemaHookMetadata(target: typeof SchemaMetadata): Map<string, string[]>;
 }

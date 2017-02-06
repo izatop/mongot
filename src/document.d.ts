@@ -1,7 +1,6 @@
-/// <reference types="node" />
 import { ObjectID } from "mongodb";
 import { SchemaMutate } from './metadata/mutation';
-import { EventEmitter } from "events";
+import { Collection } from "./collection";
 export declare const PRIMARY_KEY_NAME = "_id";
 export declare class TypeCast {
     static cast(type: any, value: any, proto?: any): any;
@@ -23,20 +22,14 @@ export declare class SchemaMetadata extends SchemaMutate {
         proto?: any;
         required?: boolean;
     }>;
-    protected getDefinedHooks(): string[];
+    protected getDefinedHooks(): Map<string, string[]>;
     toObject(): any;
     toJSON(): any;
     static factory<T extends SchemaMetadata>(document?: Object): T;
 }
-export declare class SchemaDocument extends SchemaMetadata {
+export declare abstract class SchemaDocument extends SchemaMetadata {
     readonly _id: ObjectID;
-    getEventListener(): EventEmitter;
-    protected beforeInsert(): void;
-    protected beforeUpdate(): void;
-    protected beforeDelete(): void;
-    protected afterInsert(): void;
-    protected afterUpdate(): void;
-    protected afterDelete(): void;
+    call(hook: string, collection: Collection<this>): Promise<any[]>;
 }
 export declare class SchemaFragment extends SchemaMetadata {
     readonly _id?: ObjectID;

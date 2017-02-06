@@ -4,7 +4,7 @@ import {Collection} from "../collection";
 const StoreCollection: WeakMap<typeof Collection, {name: string; construct?: typeof SchemaMetadata; options?: Object}> = new WeakMap();
 const StoreCollectionIndexes: WeakMap<typeof Collection, {indexOrSpec: string | {[key: string]: 1 | -1}, options?: Object}[]> = new WeakMap();
 const StoreType: WeakMap<typeof SchemaMetadata, Map<string | symbol, {type?: any; proto?: any; required?: boolean}>> = new WeakMap();
-const StoreHooks: WeakMap<typeof SchemaMetadata, Array<string>> = new WeakMap();
+const StoreHooks: WeakMap<typeof SchemaMetadata, Map<string, string[]>> = new WeakMap();
 
 export class MetadataStore {
     private constructor() {}
@@ -58,16 +58,24 @@ export class MetadataStore {
 
         return new Map<string | symbol, {type?: any; proto?: any; required?: boolean}>(maps);
     }
-    
+
     static getSchemaPropertyMetadata(target: typeof SchemaMetadata, property: string | symbol): {type?: any; proto?: any; required?: boolean} {
         return StoreType.get(target).get(property) as {type?: any; proto?: any; required?: boolean};
     }
-    
-    static setSchemaHookMetadata(target: typeof SchemaMetadata, method: string) {
-        StoreHooks.set(target, (StoreHooks.get(target) || []).concat([method]));
+
+    static setSchemaHookMetadata(target: typeof SchemaMetadata, hook: string, property?: string) {
+        if (false === StoreHooks.has(target)) {
+            StoreHooks.set(target, new Map<string, string[]>());
+        }
+
+        if (false === StoreHooks.get(target).has(hook)) {
+            StoreHooks.get(target).set(hook, []);
+        }
+
+        StoreHooks.get(target).get(hook).push(property || hook);
     }
     
     static getSchemaHookMetadata(target: typeof SchemaMetadata) {
-        return StoreHooks.get(target) || [];
+        return StoreHooks.get(target);
     }
 }

@@ -1,6 +1,8 @@
 import {SchemaFragment, SchemaFragmentArray, SchemaDocument, SchemaArray} from '../document';
-import {prop, req, hook, fragment} from '../schema';
+import {prop, req, hook, fragment, auto} from '../schema';
 import {document} from "../schema";
+import {Collection} from "../collection";
+import {createNextAutoIncrementNumber} from "../collection/helpers";
 
 @fragment
 export class ChildFragment extends SchemaFragment {
@@ -22,11 +24,21 @@ export class FooFragment extends SchemaFragment {
     @prop bar: BarFragment = new BarFragment({baz: 'hello'});
 }
 
+function async(fn: Function): PropertyDecorator {
+    return (target: any, prop: string | symbol) => {
+
+    }
+}
+
 @document
 export class TestDocument extends SchemaDocument {
+    @auto(createNextAutoIncrementNumber)
+    @prop
+    autoIncrement: number;
+
     @prop randomUniqueKey: number;
     @prop @req name: string;
-    
+
     @prop number: number = Math.random();
     @prop(Number) listOfNumbers: SchemaArray<number> = new SchemaArray<number>([1, 2, 3]);
     
@@ -42,7 +54,7 @@ export class TestDocument extends SchemaDocument {
     @prop deep: FooFragment = new FooFragment();
     
     @prop date: Date = new Date;
-    
+
     get sum() {
         return this.listOfNumbers.reduce((l, r) => l+r);
     }

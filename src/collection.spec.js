@@ -18,7 +18,7 @@ function setupMany(collection, documents, raw) {
     const data = raw || ['foo', 'bar', 'baz'].map(name => ({ name }));
     data.map(x => collection.factory(x))
         .forEach(x => documents.push(x));
-    return collection.deleteMany({}).then(result => collection.insertMany(documents));
+    return collection.insertMany(documents);
 }
 wrap_1.default('Collection.find()', (t) => __awaiter(this, void 0, void 0, function* () {
     const collection = connect_1.default().get(TestCollection_1.TestCollection);
@@ -32,18 +32,13 @@ wrap_1.default('Collection.find().fetchAll()', (t) => __awaiter(this, void 0, vo
     const collection = connect_1.default().get(TestCollection_1.TestCollection);
     const documents = [];
     const foos = [];
-    try {
-        for (let i = 0; i < 100; i++) {
-            foos.push({ name: "foo" + i.toString() });
-        }
-        yield setupMany(collection, documents, foos);
-        const cursor = yield collection.find({});
-        const result = yield cursor.fetchAll();
-        t.equal(result.length, 100, 'result.fetchAll() should return 100 documents');
+    for (let i = 0; i < 100; i++) {
+        foos.push({ name: "foo" + i.toString() });
     }
-    catch (error) {
-        t.fail(error);
-    }
+    yield setupMany(collection, documents, foos);
+    const cursor = yield collection.find({});
+    const result = yield cursor.fetchAll();
+    t.equal(result.length, 100, 'result.fetchAll() should return 100 documents');
     yield collection.drop();
     return (yield collection.connection).disconnect();
 }));
@@ -108,6 +103,7 @@ wrap_1.default('Collection.insertOne()', (t) => __awaiter(this, void 0, void 0, 
     const inserted = yield collection.findOne(result.insertedId);
     t.ok(result instanceof helpers_1.InsertResult, 'collection.insertOne() should return InsertResult');
     t.ok(result.insertedId instanceof mongodb_1.ObjectID, 'result.insertedId should be ObjectID');
+    t.ok(typeof document.autoIncrement === 'number', 'TestDocument.autoIncrement should be set');
     t.equals(document._id, result.insertedId, 'TestDocument should have insertedId');
     t.equals(document, result.ref, 'result.ref should be TestDocument');
     t.equals(document.version, 1, 'TestDocument.beforeInsert should be fired');
@@ -162,7 +158,7 @@ wrap_1.default('Collection.findOneAndUpdate/Replace/Delete()', (t) => __awaiter(
     t.same(findOneAndUpdateResult.get().name, 'foo', 'findOneAndUpdateResult should contain an original document');
     t.equal(findOneAndReplaceResult.has(), true, 'findOneAndReplaceResult.has() should return true');
     t.same(findOneAndReplaceResult.get().name, 'bar1', 'findOneAndReplaceResult should contain a replaced document');
-    t.same(findOneAndDeleteResult.get().toObject(), documents[2].toObject(), 'findOneAndDeleteResult should contain a deleted document');
+    t.same(findOneAndDeleteResult.get().toObject()._id, documents[2].toObject()._id, 'findOneAndDeleteResult should contain a deleted document');
     yield collection.drop();
     return (yield collection.connection).disconnect();
 }));
