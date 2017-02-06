@@ -33,7 +33,15 @@ class MetadataStore {
         Object.assign(StoreType.get(target).get(property), metadata);
     }
     static getSchemaMetadata(target) {
-        return StoreType.get(target);
+        const maps = [];
+        const proto = Object.getPrototypeOf(target);
+        if (proto && proto !== target && StoreType.has(proto)) {
+            maps.push(...this.getSchemaMetadata(proto));
+        }
+        if (StoreType.has(target)) {
+            maps.push(...StoreType.get(target));
+        }
+        return new Map(maps);
     }
     static getSchemaPropertyMetadata(target, property) {
         return StoreType.get(target).get(property);

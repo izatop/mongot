@@ -42,9 +42,21 @@ export class MetadataStore {
     
         Object.assign(StoreType.get(target).get(property), metadata);
     }
-    
+
     static getSchemaMetadata(target: typeof SchemaMetadata): Map<string | symbol, {type?: any; proto?: any; required?: boolean}> {
-        return StoreType.get(target);
+        const maps = [];
+        const proto: any = Object.getPrototypeOf(target);
+
+        if (proto && proto !== target && StoreType.has(proto)) {
+            maps.push(...this.getSchemaMetadata(proto));
+            //return new Map([...this.getSchemaMetadata(proto), ...StoreType.get(target)]);
+        }
+
+        if (StoreType.has(target)) {
+            maps.push(...StoreType.get(target));
+        }
+
+        return new Map<string | symbol, {type?: any; proto?: any; required?: boolean}>(maps);
     }
     
     static getSchemaPropertyMetadata(target: typeof SchemaMetadata, property: string | symbol): {type?: any; proto?: any; required?: boolean} {

@@ -11,6 +11,9 @@ const wrap_1 = require("./spec/wrap");
 const connect_1 = require("./spec/connect");
 const TestCollection_1 = require("./spec/TestCollection");
 const TestDocument_1 = require("./spec/TestDocument");
+const TestBase_1 = require("./spec/TestBase");
+const store_1 = require("./metadata/store");
+const TestExtend_1 = require("./spec/TestExtend");
 wrap_1.default('Schema', (t) => __awaiter(this, void 0, void 0, function* () {
     const collection = connect_1.default().get(TestCollection_1.TestCollection);
     const document = collection.factory({
@@ -38,5 +41,12 @@ wrap_1.default('Schema', (t) => __awaiter(this, void 0, void 0, function* () {
     t.equals(document.version, 1, 'TestDocument.version should be increased by beforeInsert hook');
     yield collection.drop();
     return (yield collection.connection).disconnect();
+}));
+wrap_1.default('Extending Schema', (assert) => __awaiter(this, void 0, void 0, function* () {
+    const base = store_1.MetadataStore.getSchemaMetadata(TestBase_1.TestBase);
+    const extended = Object.assign({}, ...[...store_1.MetadataStore.getSchemaMetadata(TestExtend_1.TestExtend)].map(([key, schema]) => ({ [key]: schema })));
+    for (const [key, schema] of base) {
+        assert.same(schema, extended[key], `A schema key ${key} should exists in extended document`);
+    }
 }));
 //# sourceMappingURL=schema.spec.js.map

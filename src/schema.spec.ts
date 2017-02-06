@@ -2,6 +2,10 @@ import test from './spec/wrap';
 import repo from './spec/connect';
 import {TestCollection} from './spec/TestCollection';
 import {TestDocument, ChildFragment} from './spec/TestDocument';
+import {TestBase} from "./spec/TestBase";
+import {MetadataStore} from "./metadata/store";
+import {SchemaMetadata} from "./document";
+import {TestExtend} from "./spec/TestExtend";
 
 test('Schema', async (t) => {
     const collection = repo().get(TestCollection);
@@ -34,4 +38,15 @@ test('Schema', async (t) => {
     
     await collection.drop();
     return (await collection.connection).disconnect();
+});
+
+test('Extending Schema', async assert => {
+    const base = MetadataStore.getSchemaMetadata(TestBase);
+    const extended = Object.assign({},
+        ...[...MetadataStore.getSchemaMetadata(TestExtend)].map(([key, schema]) => ({[key]: schema}))
+    );
+
+    for (const [key, schema] of base) {
+        assert.same(schema, extended[key], `A schema key ${key} should exists in extended document`);
+    }
 });
