@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const wrap_1 = require("./spec/wrap");
 const query_1 = require("./query");
-const mongodb_1 = require("mongodb");
+const schema_1 = require("./schema");
 const number = Math.random();
 const filterPlain = {
     language: 'ru',
@@ -39,9 +39,9 @@ const filterFormatted = {
     status: true,
     child_id: {
         $in: [
-            mongodb_1.ObjectID.createFromHexString('584dd5fa717425e09b46b79a'),
-            mongodb_1.ObjectID.createFromHexString('584dd5fa717425e09b46b79b'),
-            mongodb_1.ObjectID.createFromHexString('584dd5fa717425e09b46b79c')
+            schema_1.ObjectID.createFromHexString('584dd5fa717425e09b46b79a'),
+            schema_1.ObjectID.createFromHexString('584dd5fa717425e09b46b79b'),
+            schema_1.ObjectID.createFromHexString('584dd5fa717425e09b46b79c')
         ]
     },
     created: {
@@ -52,7 +52,7 @@ const filterFormatted = {
         deep: {
             number,
             deep: {
-                object_id: mongodb_1.ObjectID.createFromHexString('584dd5fa717425e09b46b79a'),
+                object_id: schema_1.ObjectID.createFromHexString('584dd5fa717425e09b46b79a'),
                 date: date1
             }
         }
@@ -64,9 +64,9 @@ wrap_1.default('Query', (t) => __awaiter(this, void 0, void 0, function* () {
     t.same(new query_1.Query(class {
     }, { field: 'string' }).format(), { field: 'string' }, 'String fields should be ok');
     t.ok(new query_1.Query(class {
-    }, { _id: '584dd5fa717425e09b46b79c' }).format()['_id'] instanceof mongodb_1.ObjectID, 'The 24-length hex string should be ObjectID');
+    }, { _id: '584dd5fa717425e09b46b79c' }).format()['_id'] instanceof schema_1.ObjectID, 'The 24-length hex string should be ObjectID');
     t.ok(new query_1.Query(class {
-    }, { _id: mongodb_1.ObjectID.createFromHexString('584dd5fa717425e09b46b79c') }).format()['_id'] instanceof mongodb_1.ObjectID, 'ObjectID should be ok');
+    }, { _id: schema_1.ObjectID.createFromHexString('584dd5fa717425e09b46b79c') }).format()['_id'] instanceof schema_1.ObjectID, 'ObjectID should be ok');
     t.ok(new query_1.Query(class {
     }, { date: (new Date).toISOString() }).format()['date'] instanceof Date, 'The ISODate string should be Date');
     t.ok(new query_1.Query(class {

@@ -1,18 +1,19 @@
 import * as MongoDb from 'mongodb';
 import { SchemaDocument } from "../document";
 import { Collection } from "../collection";
+import { ObjectID } from "../schema";
 export declare class UpdateResult {
     readonly matched: number;
     readonly modified: number;
     readonly upserted: number;
-    readonly upsertedId: MongoDb.ObjectID;
+    readonly upsertedId: ObjectID;
     constructor({matchedCount, modifiedCount, upsertedCount, upsertedId}: MongoDb.UpdateWriteOpResult);
 }
 export declare class InsertResult<TDocument extends SchemaDocument> {
-    readonly insertedId: MongoDb.ObjectID;
+    readonly insertedId: ObjectID;
     readonly ref: TDocument;
     constructor({insertedId}: {
-        insertedId: MongoDb.ObjectID;
+        insertedId: ObjectID;
     }, document: TDocument);
 }
 export declare class DeleteResult {

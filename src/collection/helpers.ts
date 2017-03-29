@@ -1,12 +1,13 @@
 import * as MongoDb from 'mongodb';
 import {SchemaDocument, PRIMARY_KEY_NAME} from "../document";
 import {Collection} from "../collection";
+import {ObjectID} from "../schema";
 
 export class UpdateResult {
     readonly matched: number;
     readonly modified: number;
     readonly upserted: number;
-    readonly upsertedId: MongoDb.ObjectID;
+    readonly upsertedId: ObjectID;
     
     constructor({matchedCount, modifiedCount, upsertedCount, upsertedId}: MongoDb.UpdateWriteOpResult) {
         this.matched = matchedCount;
@@ -19,10 +20,10 @@ export class UpdateResult {
 }
 
 export class InsertResult<TDocument extends SchemaDocument> {
-    readonly insertedId: MongoDb.ObjectID;
+    readonly insertedId: ObjectID;
     readonly ref: TDocument;
     
-    constructor({insertedId}: {insertedId: MongoDb.ObjectID}, document: TDocument) {
+    constructor({insertedId}: {insertedId: ObjectID}, document: TDocument) {
         this.insertedId = insertedId;
         this.ref = document;
         this.ref[Symbol.for(PRIMARY_KEY_NAME)](this.insertedId);

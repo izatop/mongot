@@ -13,8 +13,8 @@ const connect_1 = require("./spec/connect");
 const cursor_1 = require("./cursor");
 const TestCollection_1 = require("./spec/TestCollection");
 const helpers_1 = require("./collection/helpers");
-const mongodb_1 = require("mongodb");
 const document_1 = require("./document");
+const schema_1 = require("./schema");
 function setupMany(collection, documents, raw) {
     const data = raw || ['foo', 'bar', 'baz'].map(name => ({ name }));
     data.map(x => collection.factory(x))
@@ -103,7 +103,7 @@ wrap_1.default('Collection.insertOne()', (t) => __awaiter(this, void 0, void 0, 
     const result = yield collection.insertOne(document);
     const inserted = yield collection.findOne(result.insertedId);
     t.ok(result instanceof helpers_1.InsertResult, 'collection.insertOne() should return InsertResult');
-    t.ok(result.insertedId instanceof mongodb_1.ObjectID, 'result.insertedId should be ObjectID');
+    t.ok(result.insertedId instanceof schema_1.ObjectID, 'result.insertedId should be ObjectID');
     t.ok(typeof document.autoIncrement === 'number', 'TestDocument.autoIncrement should be set');
     t.equals(document._id, result.insertedId, 'TestDocument should have insertedId');
     t.equals(document, result.ref, 'result.ref should be TestDocument');

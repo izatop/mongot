@@ -1,4 +1,4 @@
-import {ObjectID} from 'mongodb';
+import {ObjectID} from "./schema";
 import {MetadataStore} from "./metadata/store";
 import {SchemaMetadata} from "./document";
 

@@ -23,7 +23,7 @@ const cursor_1 = require("./cursor");
 const store_1 = require("./metadata/store");
 const helpers_1 = require("./collection/helpers");
 const query_1 = require("./query");
-const mongodb_1 = require("mongodb");
+const schema_1 = require("./schema");
 var Events;
 (function (Events) {
     Events.beforeInsert = 'beforeInsert';
@@ -87,11 +87,11 @@ class Collection {
         return this.normalizeQuery(filter);
     }
     normalizeQuery(query) {
-        if (query instanceof mongodb_1.ObjectID) {
+        if (query instanceof schema_1.ObjectID) {
             return { _id: query };
         }
         else if (typeof query === 'string') {
-            return { _id: mongodb_1.ObjectID.createFromHexString(query) };
+            return { _id: schema_1.ObjectID.createFromHexString(query) };
         }
         return new query_1.Query(this.construct, query).format();
     }

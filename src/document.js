@@ -10,9 +10,9 @@ var __rest = (this && this.__rest) || function (s, e) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const assert_1 = require("assert");
-const mongodb_1 = require("mongodb");
 const store_1 = require("./metadata/store");
 const mutation_1 = require("./metadata/mutation");
+const schema_1 = require("./schema");
 const identifiers = new WeakMap();
 const values = new WeakMap();
 exports.PRIMARY_KEY_NAME = '_id';
@@ -22,8 +22,8 @@ class TypeCast {
             return value;
         }
         switch (type) {
-            case mongodb_1.ObjectID:
-                return new mongodb_1.ObjectID(value);
+            case schema_1.ObjectID:
+                return new schema_1.ObjectID(value);
             case String:
                 return TypeCast.castToString(value);
             case Number:
@@ -50,7 +50,7 @@ class TypeCast {
                 if (value === null) {
                     return value;
                 }
-                if (value instanceof mongodb_1.ObjectID) {
+                if (value instanceof schema_1.ObjectID) {
                     return value.toString();
                 }
                 if (value instanceof SchemaMetadata) {
@@ -166,9 +166,9 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
         if (properties._id) {
             let { _id } = properties;
             if (typeof _id === 'string') {
-                _id = mongodb_1.ObjectID.createFromHexString(_id);
+                _id = schema_1.ObjectID.createFromHexString(_id);
             }
-            else if (false === _id instanceof mongodb_1.ObjectID) {
+            else if (false === _id instanceof schema_1.ObjectID) {
                 throw new Error(`Cannot convert "${_id}" to ObjectID`);
             }
             identifiers.set(this, _id);
@@ -227,9 +227,9 @@ class PartialDocumentFragment extends SchemaMetadata {
         assert_1.ok(typeof document && document !== null, `${this.constructor.name} an unexpected document type ${typeof document}`);
         let _a = Object.assign({}, this.toObject(), document), { _id } = _a, properties = __rest(_a, ["_id"]);
         if (typeof _id === 'string') {
-            _id = mongodb_1.ObjectID.createFromHexString(_id);
+            _id = schema_1.ObjectID.createFromHexString(_id);
         }
-        else if (false === _id instanceof mongodb_1.ObjectID) {
+        else if (false === _id instanceof schema_1.ObjectID) {
             throw new Error(`Cannot convert "${_id}" to ObjectID`);
         }
         identifiers.set(this, _id);
@@ -271,7 +271,7 @@ class SchemaArray extends Array {
 exports.SchemaArray = SchemaArray;
 class SchemaFragmentArray extends SchemaArray {
     search(id) {
-        let _id = TypeCast.cast(mongodb_1.ObjectID, id);
+        let _id = TypeCast.cast(schema_1.ObjectID, id);
         return this.filter(x => x._id.equals(_id))
             .shift();
     }

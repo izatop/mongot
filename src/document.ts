@@ -1,8 +1,8 @@
 import {ok} from 'assert';
-import {ObjectID, Db} from "mongodb";
 import {MetadataStore} from "./metadata/store";
 import {SchemaMutate} from './metadata/mutation';
 import {Collection} from "./collection";
+import {ObjectID} from "./schema";
 
 const identifiers = new WeakMap<SchemaMetadata, ObjectID>();
 const values = new WeakMap<SchemaMetadata, Object>();

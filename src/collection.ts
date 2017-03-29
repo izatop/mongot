@@ -6,7 +6,7 @@ import {Connection} from "./connection";
 import {MetadataStore} from "./metadata/store";
 import {InsertResult, DeleteResult, UpdateResult, FindAndModifyResult} from "./collection/helpers";
 import {Query} from "./query";
-import {ObjectID} from "mongodb";
+import {ObjectID} from "./schema";
 
 export namespace Events {
     export const beforeInsert = 'beforeInsert';

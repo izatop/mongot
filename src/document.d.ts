@@ -1,6 +1,6 @@
-import { ObjectID } from "mongodb";
 import { SchemaMutate } from './metadata/mutation';
 import { Collection } from "./collection";
+import { ObjectID } from "./sh";
 export declare const PRIMARY_KEY_NAME = "_id";
 export declare class TypeCast {
     static cast(type: any, value: any, proto?: any): any;

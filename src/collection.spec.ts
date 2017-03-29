@@ -3,9 +3,9 @@ import repo from './spec/connect';
 import {Cursor} from "./cursor";
 import {TestCollection} from "./spec/TestCollection";
 import {InsertResult, DeleteResult, UpdateResult} from "./collection/helpers";
-import {ObjectID} from "mongodb";
 import {TestDocument} from "./spec/TestDocument";
 import {PartialDocumentFragment} from "./document";
+import {ObjectID} from "./schema";
 
 function setupMany(collection: TestCollection, documents: Array<TestDocument>, raw?: Object[]) {
     const data: Object[] = raw || ['foo', 'bar', 'baz'].map(name => ({name}));

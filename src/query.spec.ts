@@ -1,6 +1,6 @@
 import test from './spec/wrap';
 import {Query} from './query';
-import {ObjectID} from "mongodb";
+import {ObjectID} from "./schema";
 
 const number = Math.random();
 const filterPlain = {

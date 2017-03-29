@@ -158,4 +158,4 @@ export const auto = (fn: Function) => {
     }
 };
 
-export const ObjectID = MongoDb.ObjectID;
+export {ObjectID} from 'mongodb';

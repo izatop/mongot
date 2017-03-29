@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const mongodb_1 = require("mongodb");
+const schema_1 = require("./schema");
 const store_1 = require("./metadata/store");
 class Query {
     constructor(target, query) {
@@ -9,7 +9,7 @@ class Query {
     }
     normalize(value) {
         if (typeof value === 'object' && value !== null) {
-            if (value instanceof mongodb_1.ObjectID) {
+            if (value instanceof schema_1.ObjectID) {
                 return value;
             }
             else if (Array.isArray(value)) {
@@ -29,7 +29,7 @@ class Query {
                     return new Date(value);
                 }
                 else if (true === /^[0-9a-f]{24}$/.test(value)) {
-                    return mongodb_1.ObjectID.createFromHexString(value);
+                    return schema_1.ObjectID.createFromHexString(value);
                 }
             }
             return value;
