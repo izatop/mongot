@@ -1,6 +1,6 @@
 import { SchemaMutate } from './metadata/mutation';
 import { Collection } from "./collection";
-import { ObjectID } from "./sh";
+import { ObjectID } from "./schema";
 export declare const PRIMARY_KEY_NAME = "_id";
 export declare class TypeCast {
     static cast(type: any, value: any, proto?: any): any;
