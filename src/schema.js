@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 require("./reflect");
 const assert_1 = require("assert");
+const MongoDb = require("mongodb");
 const store_1 = require("./metadata/store");
 const document_1 = require("./document");
 const collection_1 = require("./collection");
@@ -111,4 +112,5 @@ exports.auto = (fn) => {
         store_1.MetadataStore.setSchemaHookMetadata(target.constructor, collection_1.Events.beforeInsert, property);
     };
 };
+exports.ObjectID = MongoDb.ObjectID;
 //# sourceMappingURL=schema.js.map

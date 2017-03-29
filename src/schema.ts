@@ -157,3 +157,5 @@ export const auto = (fn: Function) => {
         MetadataStore.setSchemaHookMetadata(target.constructor, Events.beforeInsert, property);
     }
 };
+
+export const ObjectID = MongoDb.ObjectID;
