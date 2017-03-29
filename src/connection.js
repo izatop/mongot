@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const MongoDb = require("mongodb");
 class Connection {
     constructor(db) {

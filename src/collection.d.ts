@@ -41,7 +41,7 @@ declare class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {any}
      */
-    aggregate(pipeline: Object[], options?: MongoDb.CollectionAggregationOptions): Promise<MongoDb.AggregationCursor>;
+    aggregate(pipeline: Object[], options?: MongoDb.CollectionAggregationOptions): Promise<MongoDb.AggregationCursor<any>>;
     /**
      * @param operations
      * @param options
@@ -218,7 +218,7 @@ declare class Collection<TDocument extends SchemaDocument> {
     /**
      * @TODO
      */
-    parallelCollectionScan(options?: MongoDb.ParallelCollectionScanOptions): Promise<MongoDb.Cursor[]>;
+    parallelCollectionScan(options?: MongoDb.ParallelCollectionScanOptions): Promise<MongoDb.Cursor<any>[]>;
     /**
      * @TODO
      */

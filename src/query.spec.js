@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const wrap_1 = require("./spec/wrap");
 const query_1 = require("./query");
 const mongodb_1 = require("mongodb");

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const test = require("tape");
 const connection_1 = require("./connection");
 const index_1 = require("./index");

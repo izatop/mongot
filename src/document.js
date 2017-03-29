@@ -8,6 +8,7 @@ var __rest = (this && this.__rest) || function (s, e) {
             t[p[i]] = s[p[i]];
     return t;
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const assert_1 = require("assert");
 const mongodb_1 = require("mongodb");
 const store_1 = require("./metadata/store");

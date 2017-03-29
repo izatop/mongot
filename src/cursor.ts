@@ -7,14 +7,14 @@ export interface Cursor<T extends Object> extends EventEmitter {
 }
 
 export class Cursor<T extends Object> extends EventEmitter {
-    public readonly cursor: MongoDb.Cursor;
+    public readonly cursor: MongoDb.Cursor<T>;
     private cast: <TNewDocument>(document: Object) => TNewDocument = (document) => document;
 
     /**
      * @param cursor
      * @param transform
      */
-    constructor(cursor: MongoDb.Cursor, transform?: <TNewDocument>(document: Object) => TNewDocument) {
+    constructor(cursor: MongoDb.Cursor<T>, transform?: <TNewDocument>(document: Object) => TNewDocument) {
         super();
         
         if (typeof transform === 'function') {
@@ -35,7 +35,7 @@ export class Cursor<T extends Object> extends EventEmitter {
     }
 
     /**
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     rewind() {
         this.cursor.rewind();
@@ -53,7 +53,7 @@ export class Cursor<T extends Object> extends EventEmitter {
 
     /**
      * @param fields
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     project(fields: Object | string) {
         this.cast = x => PartialDocumentFragment.factory(x);
@@ -68,7 +68,7 @@ export class Cursor<T extends Object> extends EventEmitter {
 
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     limit(value: number): this {
         this.cursor.limit(value);
@@ -77,7 +77,7 @@ export class Cursor<T extends Object> extends EventEmitter {
 
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     skip(value: number): this {
         this.cursor.skip(value);
@@ -88,14 +88,13 @@ export class Cursor<T extends Object> extends EventEmitter {
      * @param fn
      * @returns {Cursor<TMutate>}
      */
-    map<TMutate>(fn: Function): Cursor<TMutate> {
-        this.cursor.map(fn);
-        return new Cursor<TMutate>(this.cursor);
+    map<TMutate extends Object>(fn: <N,T>(v: N) => T): Cursor<TMutate> {
+        return new Cursor<TMutate>(<MongoDb.Cursor<TMutate>> <any> this.cursor, fn);
     }
 
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     max(value: number): this {
         this.cursor.max(value);
@@ -104,7 +103,7 @@ export class Cursor<T extends Object> extends EventEmitter {
 
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     min(value: number): this {
         this.cursor.min(value);
@@ -113,7 +112,7 @@ export class Cursor<T extends Object> extends EventEmitter {
 
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     sort(value: {[key: string]: number}): this {
         this.cursor.sort(value);

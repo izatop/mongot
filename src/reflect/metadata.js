@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 require("./reflect");
 if (!Reflect.metadata) {
     const storage = new WeakMap();

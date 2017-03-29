@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const test = require("tape");
 function wrapper(msg, fn) {
     test(msg, (t) => __awaiter(this, void 0, void 0, function* () {
@@ -28,6 +29,5 @@ function wrapper(msg, fn) {
         }
     }));
 }
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = wrapper;
 //# sourceMappingURL=wrap.js.map

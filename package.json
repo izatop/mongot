@@ -31,8 +31,8 @@
   },
   "homepage": "https://github.com/izatop/mongot#readme",
   "dependencies": {
-    "@types/mongodb": "^2.1.36",
-    "mongodb": "^2.2.15"
+    "@types/mongodb": "^2.1.41",
+    "mongodb": "^2.2.25"
   },
   "devDependencies": {
     "@types/tape": "^4.2.28",

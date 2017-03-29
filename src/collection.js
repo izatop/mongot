@@ -16,6 +16,7 @@ var __rest = (this && this.__rest) || function (s, e) {
             t[p[i]] = s[p[i]];
     return t;
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const assert_1 = require("assert");
 const document_1 = require("./document");
 const cursor_1 = require("./cursor");

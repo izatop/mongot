@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const StoreCollection = new WeakMap();
 const StoreCollectionIndexes = new WeakMap();
 const StoreType = new WeakMap();
@@ -37,6 +38,7 @@ class MetadataStore {
         const proto = Object.getPrototypeOf(target);
         if (proto && proto !== target && StoreType.has(proto)) {
             maps.push(...this.getSchemaMetadata(proto));
+            //return new Map([...this.getSchemaMetadata(proto), ...StoreType.get(target)]);
         }
         if (StoreType.has(target)) {
             maps.push(...StoreType.get(target));

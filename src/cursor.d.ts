@@ -5,19 +5,19 @@ export interface Cursor<T extends Object> extends EventEmitter {
     on(event: 'data', listener: (document: T) => void): this;
 }
 export declare class Cursor<T extends Object> extends EventEmitter {
-    readonly cursor: MongoDb.Cursor;
+    readonly cursor: MongoDb.Cursor<T>;
     private cast;
     /**
      * @param cursor
      * @param transform
      */
-    constructor(cursor: MongoDb.Cursor, transform?: <TNewDocument>(document: Object) => TNewDocument);
+    constructor(cursor: MongoDb.Cursor<T>, transform?: <TNewDocument>(document: Object) => TNewDocument);
     /**
      * @returns {Cursor<T>}
      */
     clone(): Cursor<T>;
     /**
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     rewind(): this;
     /**
@@ -28,37 +28,37 @@ export declare class Cursor<T extends Object> extends EventEmitter {
     count(applySkipLimit?: boolean, options?: MongoDb.CursorCommentOptions): Promise<number>;
     /**
      * @param fields
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     project(fields: Object | string): this;
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     limit(value: number): this;
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     skip(value: number): this;
     /**
      * @param fn
      * @returns {Cursor<TMutate>}
      */
-    map<TMutate>(fn: Function): Cursor<TMutate>;
+    map<TMutate extends Object>(fn: <N, T>(v: N) => T): Cursor<TMutate>;
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     max(value: number): this;
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     min(value: number): this;
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     sort(value: {
         [key: string]: number;

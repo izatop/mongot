@@ -6,7 +6,8 @@
     "declaration": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "noEmitOnError": false
+    "noEmitOnError": false,
+    "newLine": "LF"
   },
   "exclude": [
     "node_modules"

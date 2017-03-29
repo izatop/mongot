@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const document_1 = require("./document");
 class Cursor extends events_1.EventEmitter {
@@ -32,7 +33,7 @@ class Cursor extends events_1.EventEmitter {
         return new Cursor(this.cursor.clone(), this.cast);
     }
     /**
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     rewind() {
         this.cursor.rewind();
@@ -48,7 +49,7 @@ class Cursor extends events_1.EventEmitter {
     }
     /**
      * @param fields
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     project(fields) {
         this.cast = x => document_1.PartialDocumentFragment.factory(x);
@@ -62,7 +63,7 @@ class Cursor extends events_1.EventEmitter {
     }
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     limit(value) {
         this.cursor.limit(value);
@@ -70,7 +71,7 @@ class Cursor extends events_1.EventEmitter {
     }
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     skip(value) {
         this.cursor.skip(value);
@@ -81,12 +82,11 @@ class Cursor extends events_1.EventEmitter {
      * @returns {Cursor<TMutate>}
      */
     map(fn) {
-        this.cursor.map(fn);
-        return new Cursor(this.cursor);
+        return new Cursor(this.cursor, fn);
     }
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     max(value) {
         this.cursor.max(value);
@@ -94,7 +94,7 @@ class Cursor extends events_1.EventEmitter {
     }
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     min(value) {
         this.cursor.min(value);
@@ -102,7 +102,7 @@ class Cursor extends events_1.EventEmitter {
     }
     /**
      * @param value
-     * @returns {Cursor}
+     * @returns {Cursor<T>}
      */
     sort(value) {
         this.cursor.sort(value);
