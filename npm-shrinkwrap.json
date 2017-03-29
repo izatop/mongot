@@ -182,7 +182,7 @@
     },
     "mongodb": {
       "version": "2.2.25",
-      "from": "mongodb@2.2.25",
+      "from": "mongodb@latest",
       "resolved": "http://nexus.drhead.ru/repository/npm/mongodb/-/mongodb-2.2.25.tgz"
     },
     "mongodb-core": {

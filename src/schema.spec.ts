@@ -8,7 +8,7 @@ import {TestExtend} from "./spec/TestExtend";
 import {Events} from "./collection";
 
 test('Schema', async (t) => {
-    const collection = repo().get(TestCollection);
+    const collection = repo('schema-test').get(TestCollection);
     const document = collection.factory({
         name: 'foo',
         defaults: {min: 100, max: 200},
@@ -35,12 +35,13 @@ test('Schema', async (t) => {
     
     await document.call(Events.beforeInsert, collection);
     t.equals(document.version, 1, 'TestDocument.version should be increased by beforeInsert hook');
+    t.ok(typeof document.autoIncrement === 'number', 'TestDocument.autoIncrement should be number');
     
     await collection.drop();
     return (await collection.connection).disconnect();
 });
 
-test('Extending Schema', async assert => {
+test('Schema extending', async assert => {
     const base = MetadataStore.getSchemaMetadata(TestBase);
     const extended = Object.assign({},
         ...[...MetadataStore.getSchemaMetadata(TestExtend)].map(([key, schema]) => ({[key]: schema}))

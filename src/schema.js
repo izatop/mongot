@@ -105,6 +105,7 @@ exports.auto = (fn) => {
         target[property] = function (collection) {
             return __awaiter(this, void 0, void 0, function* () {
                 this[propertyKey] = yield fn(collection);
+                return true;
             });
         };
         store_1.MetadataStore.setSchemaHookMetadata(target.constructor, collection_1.Events.beforeInsert, property);

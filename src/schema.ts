@@ -151,6 +151,7 @@ export const auto = (fn: Function) => {
         const property = `$_generated_auto_before_insert_${propertyKey}$`;
         target[property] = async function (collection) {
             this[propertyKey] = await fn(collection);
+            return true;
         };
 
         MetadataStore.setSchemaHookMetadata(target.constructor, Events.beforeInsert, property);

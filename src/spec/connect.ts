@@ -1,3 +1,3 @@
 import {Repository} from "../index";
 
-export default () => new Repository('mongodb://localhost/test');
+export default (db = 'test') => new Repository('mongodb://localhost/'.concat(db));
