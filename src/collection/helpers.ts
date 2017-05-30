@@ -8,7 +8,7 @@ export class UpdateResult {
     readonly modified: number;
     readonly upserted: number;
     readonly upsertedId: ObjectID;
-    
+
     constructor({matchedCount, modifiedCount, upsertedCount, upsertedId}: MongoDb.UpdateWriteOpResult) {
         this.matched = matchedCount;
         this.modified = modifiedCount;
@@ -22,17 +22,17 @@ export class UpdateResult {
 export class InsertResult<TDocument extends SchemaDocument> {
     readonly insertedId: ObjectID;
     readonly ref: TDocument;
-    
+
     constructor({insertedId}: {insertedId: ObjectID}, document: TDocument) {
         this.insertedId = insertedId;
         this.ref = document;
-        this.ref[Symbol.for(PRIMARY_KEY_NAME)](this.insertedId);
+        this.ref[Symbol.for(PRIMARY_KEY_NAME)] = this.insertedId;
     }
 }
 
 export class DeleteResult {
     count: number;
-    
+
     constructor({deletedCount}: {deletedCount?: number}) {
         this.count = deletedCount;
     }
@@ -41,18 +41,18 @@ export class DeleteResult {
 export class FindAndModifyResult<TDocument extends SchemaDocument> {
     readonly lastError: Object;
     private readonly ref: TDocument = null;
-    
+
     constructor({lastErrorObject, factory, value}: {lastErrorObject: Object, factory: (document?: Object) => TDocument, value?: Object}) {
         this.lastError = lastErrorObject;
         if (!!value) {
             this.ref = factory(value);
         }
     }
-    
+
     has(): boolean {
         return !!this.ref;
     }
-    
+
     get(): TDocument {
         return this.ref;
     }

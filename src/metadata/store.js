@@ -38,7 +38,6 @@ class MetadataStore {
         const proto = Object.getPrototypeOf(target);
         if (proto && proto !== target && StoreType.has(proto)) {
             maps.push(...this.getSchemaMetadata(proto));
-            //return new Map([...this.getSchemaMetadata(proto), ...StoreType.get(target)]);
         }
         if (StoreType.has(target)) {
             maps.push(...StoreType.get(target));

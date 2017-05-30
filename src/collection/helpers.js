@@ -24,7 +24,7 @@ class InsertResult {
     constructor({ insertedId }, document) {
         this.insertedId = insertedId;
         this.ref = document;
-        this.ref[Symbol.for(document_1.PRIMARY_KEY_NAME)](this.insertedId);
+        this.ref[Symbol.for(document_1.PRIMARY_KEY_NAME)] = this.insertedId;
     }
 }
 exports.InsertResult = InsertResult;

@@ -52,7 +52,13 @@ class Cursor extends events_1.EventEmitter {
      * @returns {Cursor<T>}
      */
     project(fields) {
-        this.cast = x => document_1.PartialDocumentFragment.factory(x);
+        const oldCast = this.cast;
+        this.cast = row => {
+            const formalized = oldCast(row);
+            return document_1.PartialDocumentFragment.factory(Object.assign({}, ...Object.keys(formalized)
+                .filter(key => key in row)
+                .map(key => ({ [key]: formalized[key] }))));
+        };
         if (typeof fields === 'string') {
             this.cursor.project(Object.assign({}, ...fields.split(/[\s,]*/).map(x => ({ [x]: 1 }))));
         }

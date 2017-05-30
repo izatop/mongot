@@ -13,8 +13,6 @@ const assert_1 = require("assert");
 const store_1 = require("./metadata/store");
 const mutation_1 = require("./metadata/mutation");
 const schema_1 = require("./schema");
-const identifiers = new WeakMap();
-const values = new WeakMap();
 exports.PRIMARY_KEY_NAME = '_id';
 class TypeCast {
     static cast(type, value, proto) {
@@ -124,36 +122,44 @@ class TypeCast {
     }
 }
 exports.TypeCast = TypeCast;
+const store = new WeakMap();
+const getStore = ctx => {
+    if (false === store.has(ctx)) {
+        store.set(ctx, {}).get(ctx);
+    }
+    return store.get(ctx);
+};
 class SchemaMetadata extends mutation_1.SchemaMutate {
     constructor(document) {
         super(document);
         const metadata = this.getMetadata();
         assert_1.ok(!!metadata, `Metadata doesn't exists for ${this.constructor.name}`);
+        const values = getStore(this);
         let _id = undefined;
         if (typeof document === 'object' && document !== null) {
             _id = document[exports.PRIMARY_KEY_NAME];
         }
-        values.set(this, {});
-        identifiers.set(this, _id);
-        // Shadow setter for _id
         Object.defineProperty(this, Symbol.for(exports.PRIMARY_KEY_NAME), {
-            value: (_id) => identifiers.set(this, _id),
-            writable: false,
+            set(v) {
+                values[exports.PRIMARY_KEY_NAME] = TypeCast.cast(schema_1.ObjectID, v);
+            },
             enumerable: false,
             configurable: false
         });
         Object.defineProperty(this, exports.PRIMARY_KEY_NAME, {
             get() {
-                return identifiers.get(this);
+                return values[exports.PRIMARY_KEY_NAME];
             },
             enumerable: true,
             configurable: false
         });
         metadata.forEach(({ type, proto }, key) => {
             Object.defineProperty(this, key, {
-                get: () => values.get(this)[key],
-                set: (newValue) => {
-                    values.get(this)[key] = TypeCast.cast(type, newValue, proto);
+                get() {
+                    return values[key];
+                },
+                set(newValue) {
+                    values[key] = TypeCast.cast(type, newValue, proto);
                 },
                 enumerable: true,
                 configurable: false
@@ -163,15 +169,15 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
     __mutate(document) {
         assert_1.ok(typeof document && document !== null, `${this.constructor.name} an unexpected document type ${typeof document}`);
         const properties = Object.assign({}, this.toObject(), document);
-        if (properties._id) {
-            let { _id } = properties;
+        if (properties[exports.PRIMARY_KEY_NAME]) {
+            let _id = properties[exports.PRIMARY_KEY_NAME];
             if (typeof _id === 'string') {
                 _id = schema_1.ObjectID.createFromHexString(_id);
             }
             else if (false === _id instanceof schema_1.ObjectID) {
                 throw new Error(`Cannot convert "${_id}" to ObjectID`);
             }
-            identifiers.set(this, _id);
+            this[Symbol.for(exports.PRIMARY_KEY_NAME)] = _id;
         }
         Object.keys(properties)
             .filter(field => field !== exports.PRIMARY_KEY_NAME)
@@ -179,6 +185,7 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
             if (!Object.getOwnPropertyDescriptor(this, key)) {
                 // @TODO Add strict checking for skipped properties
                 // throw new Error(`Schema ${this.constructor.name} unknown property: ${key}`);
+                console.error(`Schema ${this.constructor.name} has unknown property: ${key}`);
                 return;
             }
             this[key] = properties[key];
@@ -232,7 +239,7 @@ class PartialDocumentFragment extends SchemaMetadata {
         else if (false === _id instanceof schema_1.ObjectID) {
             throw new Error(`Cannot convert "${_id}" to ObjectID`);
         }
-        identifiers.set(this, _id);
+        this[Symbol.for(exports.PRIMARY_KEY_NAME)] = _id;
         Object.assign(this, properties);
         return this;
     }

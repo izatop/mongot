@@ -8,11 +8,11 @@ const StoreHooks: WeakMap<typeof SchemaMetadata, Map<string, string[]>> = new We
 
 export class MetadataStore {
     private constructor() {}
-    
+
     static setCollectionMetadata(target: typeof Collection, name: string, construct?: typeof SchemaMetadata, options?: Object) {
         StoreCollection.set(target, {name, construct, options});
     }
-    
+
     static setCollectionIndexMetadata(target: typeof Collection, indexOrSpec: string | {[key: string]: 1 | -1}, options?: Object) {
         StoreCollectionIndexes.set(target, [
             ...(StoreCollectionIndexes.get(target) || []),
@@ -22,24 +22,24 @@ export class MetadataStore {
             }
         ]);
     }
-    
+
     static getCollectionIndexMetadata(target: typeof Collection) {
         return StoreCollectionIndexes.get(target);
     }
-    
+
     static getCollectionMetadata(target: typeof Collection) {
         return StoreCollection.get(target);
     }
-    
+
     static setSchemaPropertyMetadata(target: typeof SchemaMetadata, property: string | symbol, metadata: {[key: string]: any}) {
         if (false === StoreType.has(target)) {
             StoreType.set(target, new Map());
         }
-        
+
         if (false === StoreType.get(target).has(property)) {
             StoreType.get(target).set(property, {});
         }
-    
+
         Object.assign(StoreType.get(target).get(property), metadata);
     }
 
@@ -49,7 +49,6 @@ export class MetadataStore {
 
         if (proto && proto !== target && StoreType.has(proto)) {
             maps.push(...this.getSchemaMetadata(proto));
-            //return new Map([...this.getSchemaMetadata(proto), ...StoreType.get(target)]);
         }
 
         if (StoreType.has(target)) {
@@ -74,7 +73,7 @@ export class MetadataStore {
 
         StoreHooks.get(target).get(hook).push(property || hook);
     }
-    
+
     static getSchemaHookMetadata(target: typeof SchemaMetadata) {
         return StoreHooks.get(target);
     }

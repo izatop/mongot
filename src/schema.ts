@@ -25,7 +25,7 @@ export interface IndexDecorator {
 export const collection: CollectionDecorator = (...args: any[]) => {
     ok(args.length > 0 && args.length < 4, 'Mapper @collection has invalid number of arguments: ' + args.length);
     ok(typeof args[0] === 'function' || typeof args[0] === 'string', 'Mapper @collection has invalid type of first argument');
-    
+
     if (typeof args[0] === 'function') {
         const constructor: typeof Collection = args.shift();
         MetadataStore.setCollectionMetadata(constructor, name);
@@ -33,7 +33,7 @@ export const collection: CollectionDecorator = (...args: any[]) => {
         const name = args.shift();
         const construct: typeof SchemaMetadata = args.shift();
         const options: Object = args.shift() || {};
-        
+
         return (target: typeof Collection): void => {
             MetadataStore.setCollectionMetadata(target, name, construct, options);
         }
@@ -81,13 +81,13 @@ export const prop:PropDecorator = (...args: any[]) => {
         const [target, propertyKey] = args;
         let type: any = Reflect.getMetadata('design:type', target, propertyKey),
             proto = type;
-        
+
         if (typeof type === "function" && SchemaFragment.isPrototypeOf(type)) {
             type = SchemaFragment;
         }
-    
+
         checkProto(type, proto, target, propertyKey);
-        
+
         MetadataStore.setSchemaPropertyMetadata(
             target.constructor,
             propertyKey,
@@ -97,9 +97,9 @@ export const prop:PropDecorator = (...args: any[]) => {
         return (target: any, propertyKey: string | symbol): void => {
             const type = Reflect.getMetadata('design:type', target, propertyKey) || args.shift();
             const proto = args.shift() || type;
-            
+
             checkProto(type, proto, target, propertyKey);
-            
+
             MetadataStore.setSchemaPropertyMetadata(
                 target.constructor,
                 propertyKey,

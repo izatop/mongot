@@ -1,4 +1,5 @@
 import { SchemaFragment, SchemaFragmentArray, SchemaDocument, SchemaArray } from '../document';
+import { ObjectID } from '../schema';
 export declare class ChildFragment extends SchemaFragment {
     min: number;
     max: number;
@@ -23,6 +24,7 @@ export declare class TestDocument extends SchemaDocument {
     any: Object;
     deep: FooFragment;
     date: Date;
+    someId: ObjectID;
     readonly sum: number;
     protected beforeInsert(): void;
 }

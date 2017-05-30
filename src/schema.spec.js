@@ -16,15 +16,18 @@ const TestBase_1 = require("./spec/TestBase");
 const store_1 = require("./metadata/store");
 const TestExtend_1 = require("./spec/TestExtend");
 const collection_1 = require("./collection");
+const schema_1 = require("./schema");
 wrap_1.default('Schema', (t) => __awaiter(this, void 0, void 0, function* () {
     const collection = connect_1.default('schema-test').get(TestCollection_1.TestCollection);
     const document = collection.factory({
         name: 'foo',
         defaults: { min: 100, max: 200 },
-        children: [{ min: 1, max: 2 }]
+        children: [{ min: 1, max: 2 }],
+        someId: "555330303030303331323132"
     });
     document.children.push({ min: 3, max: 4 });
     document.listOfNumbers.push(4);
+    t.ok(document.someId instanceof schema_1.ObjectID, 'TestDocument.someId should be ObjectID');
     t.ok(document instanceof TestDocument_1.TestDocument, 'TestCollection.factory() should return instance of the TestDocument class');
     t.ok(typeof document.number === 'number', 'TestDocument.number should be a number');
     t.ok(document.defaults instanceof TestDocument_1.ChildFragment, 'TestDocument.defaults should be ChildFragment');

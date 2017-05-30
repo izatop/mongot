@@ -16,14 +16,14 @@ export class Cursor<T extends Object> extends EventEmitter {
      */
     constructor(cursor: MongoDb.Cursor<T>, transform?: <TNewDocument>(document: Object) => TNewDocument) {
         super();
-        
+
         if (typeof transform === 'function') {
             this.cast = transform;
             cursor.map(x => {
                 return this.cast(x);
             });
         }
-        
+
         this.cursor = cursor;
     }
 
@@ -56,13 +56,23 @@ export class Cursor<T extends Object> extends EventEmitter {
      * @returns {Cursor<T>}
      */
     project(fields: Object | string) {
-        this.cast = x => PartialDocumentFragment.factory(x);
+        const oldCast = this.cast;
+        this.cast = row => {
+            const formalized = oldCast(row);
+            return PartialDocumentFragment.factory(
+                Object.assign({}, ...Object.keys(formalized)
+                    .filter(key => key in row)
+                    .map(key => ({[key]: formalized[key]}))
+                )
+            );
+        };
+
         if (typeof fields === 'string') {
             this.cursor.project(Object.assign({}, ...fields.split(/[\s,]*/).map(x => ({[x]: 1}))));
         } else {
             this.cursor.project(fields);
         }
-        
+
         return this;
     }
 
@@ -135,7 +145,7 @@ export class Cursor<T extends Object> extends EventEmitter {
         if (await this.cursor.hasNext()) {
             return await this.cursor.next();
         }
-        
+
         return null;
     }
 
@@ -148,7 +158,7 @@ export class Cursor<T extends Object> extends EventEmitter {
         while(await this.cursor.hasNext()) {
             result.push(await this.cursor.next());
         }
-        
+
         return result;
     }
 }

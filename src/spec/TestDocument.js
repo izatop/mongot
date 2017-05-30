@@ -54,10 +54,6 @@ FooFragment = __decorate([
     schema_1.fragment
 ], FooFragment);
 exports.FooFragment = FooFragment;
-function async(fn) {
-    return (target, prop) => {
-    };
-}
 let TestDocument = class TestDocument extends document_1.SchemaDocument {
     constructor() {
         super(...arguments);
@@ -126,6 +122,10 @@ __decorate([
     schema_1.prop,
     __metadata("design:type", Date)
 ], TestDocument.prototype, "date", void 0);
+__decorate([
+    schema_1.prop,
+    __metadata("design:type", schema_1.ObjectID)
+], TestDocument.prototype, "someId", void 0);
 __decorate([
     schema_1.hook,
     __metadata("design:type", Function),

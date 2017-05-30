@@ -11,12 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const schema_1 = require("../schema");
 const document_1 = require("../document");
-class TestBase extends document_1.SchemaDocument {
+let TestBase = class TestBase extends document_1.SchemaDocument {
     constructor() {
         super(...arguments);
         this.bar = false;
     }
-}
+};
 __decorate([
     schema_1.prop,
     __metadata("design:type", String)
@@ -25,5 +25,8 @@ __decorate([
     schema_1.prop,
     __metadata("design:type", Boolean)
 ], TestBase.prototype, "bar", void 0);
+TestBase = __decorate([
+    schema_1.document
+], TestBase);
 exports.TestBase = TestBase;
 //# sourceMappingURL=TestBase.js.map
