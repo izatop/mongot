@@ -99,11 +99,12 @@ wrap_1.default('Collection.find().project()', (t) => __awaiter(this, void 0, voi
 }));
 wrap_1.default('Collection.insertOne()', (t) => __awaiter(this, void 0, void 0, function* () {
     const collection = connect_1.default().get(TestCollection_1.TestCollection);
-    const document = collection.factory({ any: { any: false }, name: 'One' });
+    const document = collection.factory({ any: { any: false }, name: 'One', someId: "555330303030303331323132" });
     const result = yield collection.insertOne(document);
     const inserted = yield collection.findOne(result.insertedId);
     t.ok(result instanceof helpers_1.InsertResult, 'collection.insertOne() should return InsertResult');
     t.ok(result.insertedId instanceof schema_1.ObjectID, 'result.insertedId should be ObjectID');
+    t.ok(document.someId instanceof schema_1.ObjectID, 'TestDocument.someId should be ObjectID');
     t.ok(typeof document.autoIncrement === 'number', 'TestDocument.autoIncrement should be set');
     t.equals(document._id, result.insertedId, 'TestDocument should have insertedId');
     t.equals(document, result.ref, 'result.ref should be TestDocument');

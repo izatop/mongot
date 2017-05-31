@@ -2,15 +2,14 @@ import "./reflect";
 import {ok} from "assert";
 import * as MongoDb from 'mongodb';
 import {MetadataStore} from './metadata/store';
-import {SchemaDocument, SchemaFragment} from "./document";
+import {SchemaFragment} from "./document";
 import {Collection, Events} from "./collection";
 import {SchemaMetadata} from "./document";
 
 export interface CollectionDecorator {
-    (target: typeof Collection): void;
     (
         name: string,
-        schema: typeof SchemaDocument,
+        schema: typeof SchemaMetadata,
         options?: MongoDb.CollectionCreateOptions | MongoDb.CollectionOptions
     ): (constructor: typeof Collection) => void;
 }
@@ -22,21 +21,12 @@ export interface IndexDecorator {
     ): (constructor: typeof Collection) => void;
 }
 
-export const collection: CollectionDecorator = (...args: any[]) => {
-    ok(args.length > 0 && args.length < 4, 'Mapper @collection has invalid number of arguments: ' + args.length);
-    ok(typeof args[0] === 'function' || typeof args[0] === 'string', 'Mapper @collection has invalid type of first argument');
+export const collection: CollectionDecorator = (name: string, construct: typeof SchemaMetadata, options: Object = {}) => {
+    ok(typeof name === 'string' && name.length, 'A @collection mapper should get a valid name');
+    ok(typeof construct === 'function', 'A @collection mapper should get a valid a document schema');
 
-    if (typeof args[0] === 'function') {
-        const constructor: typeof Collection = args.shift();
-        MetadataStore.setCollectionMetadata(constructor, name);
-    } else {
-        const name = args.shift();
-        const construct: typeof SchemaMetadata = args.shift();
-        const options: Object = args.shift() || {};
-
-        return (target: typeof Collection): void => {
-            MetadataStore.setCollectionMetadata(target, name, construct, options);
-        }
+    return (target: typeof Collection): void => {
+        MetadataStore.setCollectionMetadata(target, name, construct, options);
     }
 };
 

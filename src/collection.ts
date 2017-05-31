@@ -1,12 +1,12 @@
 import * as MongoDb from 'mongodb';
 import {ok} from 'assert';
-import {SchemaDocument} from "./document";
+import {PRIMARY_KEY_NAME, SchemaDocument} from "./document";
 import {Cursor} from "./cursor";
 import {Connection} from "./connection";
 import {MetadataStore} from "./metadata/store";
 import {InsertResult, DeleteResult, UpdateResult, FindAndModifyResult} from "./collection/helpers";
 import {Query} from "./query";
-import {ObjectID} from "./schema";
+import {ObjectID} from './schema';
 
 export namespace Events {
     export const beforeInsert = 'beforeInsert';
@@ -40,7 +40,12 @@ class Collection<TDocument extends SchemaDocument> {
         
         this.name = name || metadata.name;
         this.construct = construct || metadata.construct;
-        this.state = connection.then(connection => connection.get(this.name, options || metadata.options));
+        
+        // this.state provide a collection instance from a lazy connection
+        this.state = connection.then(
+            (connection: Connection) => connection.get(this.name, options || metadata.options)
+        );
+        
         this.connection = connection;
     
         this.queue(async collection => {
@@ -121,12 +126,12 @@ class Collection<TDocument extends SchemaDocument> {
         }
         
         if (prepared._id) {
-            const update = prepared.toObject();
+            const update = prepared.extract();
             return this.updateOne(prepared, {
                 $set: Object.assign(
                     {},
                     ...Object.keys(update)
-                        .filter(key => key !== '_id')
+                        .filter(key => key !== PRIMARY_KEY_NAME)
                         .map(key => ({[key]: update[key]}))
                 )
             });
@@ -371,7 +376,7 @@ class Collection<TDocument extends SchemaDocument> {
             }
         };
         
-        return Object.assign(reference, doc.toObject());
+        return Object.assign(reference, doc.extract());
     }
     
     /**
@@ -410,7 +415,7 @@ class Collection<TDocument extends SchemaDocument> {
             }
 
             await formalized.call(Events.beforeInsert, this);
-            const insertResult = new InsertResult(await collection.insertOne(formalized.toObject(), options), formalized);
+            const insertResult = new InsertResult(await collection.insertOne(formalized.extract(), options), formalized);
             await formalized.call(Events.afterInsert, this);
 
             return insertResult;
@@ -522,7 +527,7 @@ class Collection<TDocument extends SchemaDocument> {
             await beforeUpdate();
 
             if (update instanceof SchemaDocument) {
-                const {_id, ...document}: any = update.toObject();
+                const {_id, ...document}: any = update.extract();
                 updateSchema = document;
             }
 

@@ -10,7 +10,7 @@ Just type `npm i -S mongot` to install this package.
 
 ### Configure
 
-You may need TypeScript 2+ and enable `experimentalDecorators`,
+You may need TypeScript 2+ and should enable `experimentalDecorators`,
 `emitDecoratorMetadata` in your `tsconfig.json`.
 
 ### Collections
@@ -43,11 +43,11 @@ database and a `UserDocument` schema by a `@collection` decorator.
 
 ### Document Schema
 
-A document class describes schema fields and an entity getters/setters,
-event handlers and helper functions.
+A document class describes a schema (document properties, getters/setters,
+hooks for insertions/updates and helper functions).
 
-Schema supports these types: `string`, `boolean`, `number`, `date`,
-`Object`, `SchemaFragment` (also known as sub-document) 
+Schema supports these types: `ObjectID`, `string`, `boolean`, `number`, 
+`date`, `Object`, `SchemaFragment` (also known as sub-document) 
 and `array`. A `buffer` type doesn't tested at this time.
 
 #### Create a document
@@ -56,29 +56,49 @@ let's look at a `UserDocument` schema:
 
 ```ts
 # UserDocument.ts
-import {SchemaDocument} from 'mongot';
+import {SchemaDocument, SchemaFragment, Events} from 'mongot';
 import {hook, prop, document} from 'mongot';
 import * as crypto from 'crypto';
 
+@fragment
+class UserContactsFragment extends SchemaFragment {
+    type: 'phone' | 'email' | 'im';
+    title: string;
+    value: string;
+}
+
 @document
 class UserDocument extends SchemaDocument {
-    @prop email: string;
-    @prop password: string;
-    @prop firstName: string;
-    @prop lastName: string;
+    @prop 
+    public email: string;
     
-    @prop registered: Date = new Date();
-    @prop updated: Date;
+    @prop 
+    public password: string;
     
-    @hook
-    beforeUpdate() {
+    @prop
+    public firstName: string;
+    
+    @prop
+    public lastName: string;
+    
+    @prop 
+    registered: Date = new Date();
+    
+    @prop 
+    updated: Date;
+    
+    @prop(UserContactsFragment) 
+    children: SchemaFragmentArray<UserContactsFragment>;
+    
+    @hook(Events.beforeUpdate)
+    refreshUpdated() {
         this.updated = new Date();
     }
     
     get displayName() {
         return [this.firstName, this.lastName]
             .filter(x => !!x)
-            .join(' ');
+            .join(' ') || 'Unknown';
     }
     
     checkPassword(password: string) {

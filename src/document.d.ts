@@ -5,6 +5,7 @@ export declare const PRIMARY_KEY_NAME = "_id";
 export declare class TypeCast {
     static cast(type: any, value: any, proto?: any): any;
     static toPlainValue(value: any): any;
+    static extract(value: any): any;
     static castToArray(type: typeof SchemaArray, proto: any, value: any): SchemaArray<any>;
     static castToFragmentArray(type: typeof SchemaArray, proto: any, value: any): SchemaArray<any>;
     static castToFragment(proto: typeof SchemaFragment, value: Object): SchemaFragment;
@@ -25,6 +26,7 @@ export declare class SchemaMetadata extends SchemaMutate {
     protected getDefinedHooks(): Map<string, string[]>;
     toObject(): any;
     toJSON(): any;
+    extract(): any;
     static factory<T extends SchemaMetadata>(document?: Object): T;
 }
 export declare abstract class SchemaDocument extends SchemaMetadata {

@@ -2,6 +2,7 @@ import {SchemaFragment, SchemaFragmentArray, SchemaDocument, SchemaArray} from '
 import {prop, req, hook, fragment, auto, ObjectID} from '../schema';
 import {document} from "../schema";
 import {createNextAutoIncrementNumber} from "../collection/helpers";
+import {Events} from "../collection";
 
 @fragment
 export class ChildFragment extends SchemaFragment {
@@ -54,9 +55,14 @@ export class TestDocument extends SchemaDocument {
         return this.listOfNumbers.reduce((l, r) => l+r);
     }
 
-    @hook
-    protected beforeInsert() {
+    @hook(Events.beforeInsert)
+    protected generateRandomKey() {
         this.randomUniqueKey = Math.random() * 90000000;
+        this.version = 1;
+    }
+    
+    @hook(Events.beforeUpdate)
+    protected updateVersion() {
         this.version++;
     }
 }

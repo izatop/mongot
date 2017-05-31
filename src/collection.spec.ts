@@ -107,13 +107,15 @@ test('Collection.find().project()', async (t) => {
     return (await collection.connection).disconnect();
 });
 
+
 test('Collection.insertOne()', async (t) => {
     const collection = repo().get(TestCollection);
-    const document = collection.factory({any: {any: false}, name: 'One'});
+    const document = collection.factory({any: {any: false}, name: 'One', someId: "555330303030303331323132"});
     const result = await collection.insertOne(document);
     const inserted = await collection.findOne(result.insertedId);
     t.ok(result instanceof InsertResult, 'collection.insertOne() should return InsertResult');
     t.ok(result.insertedId instanceof ObjectID, 'result.insertedId should be ObjectID');
+    t.ok(document.someId instanceof ObjectID, 'TestDocument.someId should be ObjectID');
     t.ok(typeof document.autoIncrement === 'number', 'TestDocument.autoIncrement should be set');
     t.equals(document._id, result.insertedId, 'TestDocument should have insertedId');
     t.equals(document, result.ref, 'result.ref should be TestDocument');

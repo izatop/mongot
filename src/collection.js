@@ -39,7 +39,8 @@ class Collection {
         const indexes = store_1.MetadataStore.getCollectionIndexMetadata(this.constructor) || [];
         this.name = name || metadata.name;
         this.construct = construct || metadata.construct;
-        this.state = connection.then(connection => connection.get(this.name, options || metadata.options));
+        // this.state provide a collection instance from a lazy connection
+        this.state = connection.then((connection) => connection.get(this.name, options || metadata.options));
         this.connection = connection;
         this.queue((collection) => __awaiter(this, void 0, void 0, function* () {
             const existing = yield collection.indexes();
@@ -113,10 +114,10 @@ class Collection {
             prepared = this.factory(document);
         }
         if (prepared._id) {
-            const update = prepared.toObject();
+            const update = prepared.extract();
             return this.updateOne(prepared, {
                 $set: Object.assign({}, ...Object.keys(update)
-                    .filter(key => key !== '_id')
+                    .filter(key => key !== document_1.PRIMARY_KEY_NAME)
                     .map(key => ({ [key]: update[key] })))
             });
         }
@@ -327,7 +328,7 @@ class Collection {
                 return this[Symbol.for('ref')].pop(); // delete reference for original document
             }
         };
-        return Object.assign(reference, doc.toObject());
+        return Object.assign(reference, doc.extract());
     }
     /**
      * @TODO Mutate result
@@ -363,7 +364,7 @@ class Collection {
                 formalized = this.factory(document);
             }
             yield formalized.call(Events.beforeInsert, this);
-            const insertResult = new helpers_1.InsertResult(yield collection.insertOne(formalized.toObject(), options), formalized);
+            const insertResult = new helpers_1.InsertResult(yield collection.insertOne(formalized.extract(), options), formalized);
             yield formalized.call(Events.afterInsert, this);
             return insertResult;
         }));
@@ -459,7 +460,7 @@ class Collection {
             }
             yield beforeUpdate();
             if (update instanceof document_1.SchemaDocument) {
-                const _a = update.toObject(), { _id } = _a, document = __rest(_a, ["_id"]);
+                const _a = update.extract(), { _id } = _a, document = __rest(_a, ["_id"]);
                 updateSchema = document;
             }
             const updateResult = new helpers_1.UpdateResult(yield collection.updateOne(this.filter(filter), updateSchema, options));

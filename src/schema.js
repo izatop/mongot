@@ -13,21 +13,12 @@ const assert_1 = require("assert");
 const store_1 = require("./metadata/store");
 const document_1 = require("./document");
 const collection_1 = require("./collection");
-exports.collection = (...args) => {
-    assert_1.ok(args.length > 0 && args.length < 4, 'Mapper @collection has invalid number of arguments: ' + args.length);
-    assert_1.ok(typeof args[0] === 'function' || typeof args[0] === 'string', 'Mapper @collection has invalid type of first argument');
-    if (typeof args[0] === 'function') {
-        const constructor = args.shift();
-        store_1.MetadataStore.setCollectionMetadata(constructor, name);
-    }
-    else {
-        const name = args.shift();
-        const construct = args.shift();
-        const options = args.shift() || {};
-        return (target) => {
-            store_1.MetadataStore.setCollectionMetadata(target, name, construct, options);
-        };
-    }
+exports.collection = (name, construct, options = {}) => {
+    assert_1.ok(typeof name === 'string' && name.length, 'A @collection mapper should get a valid name');
+    assert_1.ok(typeof construct === 'function', 'A @collection mapper should get a valid a document schema');
+    return (target) => {
+        store_1.MetadataStore.setCollectionMetadata(target, name, construct, options);
+    };
 };
 exports.index = (indexOrSpec, options) => {
     return (target) => {

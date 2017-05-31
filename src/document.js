@@ -72,6 +72,34 @@ class TypeCast {
                 return value;
         }
     }
+    static extract(value) {
+        switch (typeof value) {
+            case 'object': {
+                if (value === null) {
+                    return value;
+                }
+                if (value instanceof SchemaMetadata) {
+                    return value.extract();
+                }
+                if (value instanceof SchemaArray) {
+                    return [...value].map(v => TypeCast.extract(v));
+                }
+                if (Array.isArray(value)) {
+                    return value.map(x => TypeCast.extract(x));
+                }
+                if (Object.prototype.toString.call(value) === '[object Object]') {
+                    return Object.assign({}, ...Object.keys(value)
+                        .filter(key => typeof value[key] !== 'undefined')
+                        .map(key => ({ [key]: TypeCast.extract(value[key]) })));
+                }
+                else {
+                    return value;
+                }
+            }
+            default:
+                return value;
+        }
+    }
     static castToArray(type, proto, value) {
         assert_1.ok(true === Array.isArray(value), `${type.name} need an array value for constructor given ${value.toString()}.`);
         return new type(value, x => TypeCast.cast(proto, x));
@@ -210,6 +238,16 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
     }
     toJSON() {
         return this.toObject();
+    }
+    extract() {
+        const properties = [];
+        Object.keys(this)
+            .forEach(key => {
+            if (typeof this[key] !== 'undefined') {
+                properties.push({ [key]: TypeCast.extract(this[key]) });
+            }
+        });
+        return Object.assign({}, ...properties);
     }
     static factory(document) {
         return new this().__mutate(document);

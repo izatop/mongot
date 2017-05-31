@@ -44,30 +44,30 @@ export class TypeCast {
                 return value;
         }
     }
-
+    
     static toPlainValue(value: any) {
         switch (typeof value) {
             case 'object': {
                 if (value === null) {
                     return value;
                 }
-
+                
                 if (value instanceof ObjectID) {
                     return value.toString();
                 }
-
+                
                 if (value instanceof SchemaMetadata) {
                     return value.toObject();
                 }
-
+                
                 if (value instanceof SchemaArray) {
                     return value.toArray();
                 }
-
+                
                 if (Array.isArray(value)) {
                     return value.map(x => TypeCast.toPlainValue(x));
                 }
-
+                
                 if (Object.prototype.toString.call(value) === '[object Object]') {
                     return Object.assign(
                         {},
@@ -78,7 +78,43 @@ export class TypeCast {
                     return value;
                 }
             }
-
+            
+            default:
+                return value;
+        }
+    }
+    
+    static extract(value: any) {
+        switch (typeof value) {
+            case 'object': {
+                if (value === null) {
+                    return value;
+                }
+                
+                if (value instanceof SchemaMetadata) {
+                    return value.extract();
+                }
+                
+                if (value instanceof SchemaArray) {
+                    return [...value].map(v => TypeCast.extract(v));
+                }
+                
+                if (Array.isArray(value)) {
+                    return value.map(x => TypeCast.extract(x));
+                }
+                
+                if (Object.prototype.toString.call(value) === '[object Object]') {
+                    return Object.assign(
+                        {},
+                        ...Object.keys(value)
+                            .filter(key => typeof value[key] !== 'undefined')
+                            .map(key => ({[key]: TypeCast.extract(value[key])}))
+                    );
+                } else {
+                    return value;
+                }
+            }
+            
             default:
                 return value;
         }
@@ -254,6 +290,18 @@ export class SchemaMetadata extends SchemaMutate {
 
     toJSON() {
         return this.toObject();
+    }
+    
+    extract() {
+        const properties = [];
+        Object.keys(this)
+            .forEach(key => {
+                if (typeof this[key] !== 'undefined') {
+                    properties.push({[key]: TypeCast.extract(this[key])});
+                }
+            });
+    
+        return Object.assign({}, ...properties);
     }
 
     static factory<T extends SchemaMetadata>(document?: Object): T {

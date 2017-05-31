@@ -1,10 +1,9 @@
 import "./reflect";
 import * as MongoDb from 'mongodb';
-import { SchemaDocument } from "./document";
 import { Collection } from "./collection";
+import { SchemaMetadata } from "./document";
 export interface CollectionDecorator {
-    (target: typeof Collection): void;
-    (name: string, schema: typeof SchemaDocument, options?: MongoDb.CollectionCreateOptions | MongoDb.CollectionOptions): (constructor: typeof Collection) => void;
+    (name: string, schema: typeof SchemaMetadata, options?: MongoDb.CollectionCreateOptions | MongoDb.CollectionOptions): (constructor: typeof Collection) => void;
 }
 export interface IndexDecorator {
     (indexOrSpec: string | {

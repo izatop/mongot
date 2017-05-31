@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/izatop/mongot#readme",
   "dependencies": {
-    "@types/mongodb": "^2.1.41",
+    "@types/mongodb": "http://nexus.drhead.ru/repository/npm/@types/mongodb/-/mongodb-2.1.41.tgz",
     "mongodb": "^2.2.25"
   },
   "devDependencies": {

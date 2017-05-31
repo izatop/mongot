@@ -17,6 +17,7 @@ const store_1 = require("./metadata/store");
 const TestExtend_1 = require("./spec/TestExtend");
 const collection_1 = require("./collection");
 const schema_1 = require("./schema");
+const document_1 = require("./document");
 wrap_1.default('Schema', (t) => __awaiter(this, void 0, void 0, function* () {
     const collection = connect_1.default('schema-test').get(TestCollection_1.TestCollection);
     const document = collection.factory({
@@ -51,8 +52,11 @@ wrap_1.default('Schema', (t) => __awaiter(this, void 0, void 0, function* () {
 wrap_1.default('Schema extending', (assert) => __awaiter(this, void 0, void 0, function* () {
     const base = store_1.MetadataStore.getSchemaMetadata(TestBase_1.TestBase);
     const extended = Object.assign({}, ...[...store_1.MetadataStore.getSchemaMetadata(TestExtend_1.TestExtend)].map(([key, schema]) => ({ [key]: schema })));
+    let matches = Object.keys(new TestBase_1.TestBase).filter(x => x !== document_1.PRIMARY_KEY_NAME).length;
     for (const [key, schema] of base) {
+        matches--;
         assert.same(schema, extended[key], `A schema key ${key} should exists in extended document`);
     }
+    assert.equal(matches, 0, 'TestExtend should extend any TestBase properties.');
 }));
 //# sourceMappingURL=schema.spec.js.map

@@ -7,6 +7,7 @@ import {MetadataStore} from "./metadata/store";
 import {TestExtend} from "./spec/TestExtend";
 import {Events} from "./collection";
 import {ObjectID} from "./schema";
+import {PRIMARY_KEY_NAME} from "./document";
 
 test('Schema', async (t) => {
     const collection = repo('schema-test').get(TestCollection);
@@ -50,7 +51,11 @@ test('Schema extending', async assert => {
         ...[...MetadataStore.getSchemaMetadata(TestExtend)].map(([key, schema]) => ({[key]: schema}))
     );
 
+    let matches = Object.keys(new TestBase).filter(x => x !== PRIMARY_KEY_NAME).length;
     for (const [key, schema] of base) {
+        matches--;
         assert.same(schema, extended[key], `A schema key ${key} should exists in extended document`);
     }
+    
+    assert.equal(matches, 0, 'TestExtend should extend any TestBase properties.');
 });

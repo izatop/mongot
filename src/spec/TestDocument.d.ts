@@ -26,5 +26,6 @@ export declare class TestDocument extends SchemaDocument {
     date: Date;
     someId: ObjectID;
     readonly sum: number;
-    protected beforeInsert(): void;
+    protected generateRandomKey(): void;
+    protected updateVersion(): void;
 }

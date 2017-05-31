@@ -13,6 +13,7 @@ const document_1 = require("../document");
 const schema_1 = require("../schema");
 const schema_2 = require("../schema");
 const helpers_1 = require("../collection/helpers");
+const collection_1 = require("../collection");
 let ChildFragment = class ChildFragment extends document_1.SchemaFragment {
     get avg() {
         return (this.max - this.min) / 2;
@@ -68,8 +69,11 @@ let TestDocument = class TestDocument extends document_1.SchemaDocument {
     get sum() {
         return this.listOfNumbers.reduce((l, r) => l + r);
     }
-    beforeInsert() {
+    generateRandomKey() {
         this.randomUniqueKey = Math.random() * 90000000;
+        this.version = 1;
+    }
+    updateVersion() {
         this.version++;
     }
 };
@@ -127,11 +131,17 @@ __decorate([
     __metadata("design:type", schema_1.ObjectID)
 ], TestDocument.prototype, "someId", void 0);
 __decorate([
-    schema_1.hook,
+    schema_1.hook(collection_1.Events.beforeInsert),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
-], TestDocument.prototype, "beforeInsert", null);
+], TestDocument.prototype, "generateRandomKey", null);
+__decorate([
+    schema_1.hook(collection_1.Events.beforeUpdate),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], TestDocument.prototype, "updateVersion", null);
 TestDocument = __decorate([
     schema_2.document
 ], TestDocument);
