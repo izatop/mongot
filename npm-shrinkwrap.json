@@ -1,6 +1,6 @@
 {
   "name": "mongot",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "dependencies": {
     "@types/mongodb": {
       "version": "2.1.41",
