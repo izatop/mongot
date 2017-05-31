@@ -28,6 +28,7 @@ wrap_1.default('Schema', (t) => __awaiter(this, void 0, void 0, function* () {
     });
     document.children.push({ min: 3, max: 4 });
     document.listOfNumbers.push(4);
+    t.equal(document.toObject().sum, document.listOfNumbers.reduce((l, r) => l + r), 'A @virtual getter should export sum property by toObject()');
     t.ok(document.someId instanceof schema_1.ObjectID, 'TestDocument.someId should be ObjectID');
     t.ok(document instanceof TestDocument_1.TestDocument, 'TestCollection.factory() should return instance of the TestDocument class');
     t.ok(typeof document.number === 'number', 'TestDocument.number should be a number');

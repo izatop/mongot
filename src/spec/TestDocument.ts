@@ -1,5 +1,5 @@
 import {SchemaFragment, SchemaFragmentArray, SchemaDocument, SchemaArray} from '../document';
-import {prop, req, hook, fragment, auto, ObjectID} from '../schema';
+import {prop, req, hook, fragment, auto, ObjectID, virtual} from '../schema';
 import {document} from "../schema";
 import {createNextAutoIncrementNumber} from "../collection/helpers";
 import {Events} from "../collection";
@@ -51,7 +51,7 @@ export class TestDocument extends SchemaDocument {
 
     @prop someId: ObjectID;
 
-    get sum() {
+    @virtual get sum() {
         return this.listOfNumbers.reduce((l, r) => l+r);
     }
 

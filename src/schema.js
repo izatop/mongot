@@ -102,6 +102,9 @@ exports.auto = (fn) => {
         store_1.MetadataStore.setSchemaHookMetadata(target.constructor, collection_1.Events.beforeInsert, property);
     };
 };
+exports.virtual = (target, propertyKey) => {
+    store_1.MetadataStore.setSchemaVirtualMetadata(target.constructor, propertyKey);
+};
 var mongodb_1 = require("mongodb");
 exports.ObjectID = mongodb_1.ObjectID;
 //# sourceMappingURL=schema.js.map

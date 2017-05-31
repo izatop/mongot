@@ -32,4 +32,6 @@ export declare class MetadataStore {
     };
     static setSchemaHookMetadata(target: typeof SchemaMetadata, hook: string, property?: string): void;
     static getSchemaHookMetadata(target: typeof SchemaMetadata): Map<string, string[]>;
+    static setSchemaVirtualMetadata(target: typeof SchemaMetadata, virtual: string | symbol): void;
+    static getSchemaVirtualMetadata(target: typeof SchemaMetadata): (string | symbol)[];
 }

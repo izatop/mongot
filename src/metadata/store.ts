@@ -5,6 +5,7 @@ const StoreCollection: WeakMap<typeof Collection, {name: string; construct?: typ
 const StoreCollectionIndexes: WeakMap<typeof Collection, {indexOrSpec: string | {[key: string]: 1 | -1}, options?: Object}[]> = new WeakMap();
 const StoreType: WeakMap<typeof SchemaMetadata, Map<string | symbol, {type?: any; proto?: any; required?: boolean}>> = new WeakMap();
 const StoreHooks: WeakMap<typeof SchemaMetadata, Map<string, string[]>> = new WeakMap();
+const StoreVirtuals: WeakMap<typeof SchemaMetadata, Array<string | symbol>> = new WeakMap();
 
 export class MetadataStore {
     private constructor() {}
@@ -76,5 +77,17 @@ export class MetadataStore {
 
     static getSchemaHookMetadata(target: typeof SchemaMetadata) {
         return StoreHooks.get(target);
+    }
+    
+    static setSchemaVirtualMetadata(target: typeof SchemaMetadata, virtual: string | symbol) {
+        if (false === StoreVirtuals.has(target)) {
+            StoreVirtuals.set(target, []);
+        }
+        
+        StoreVirtuals.get(target).push(virtual);
+    }
+    
+    static getSchemaVirtualMetadata(target: typeof SchemaMetadata) {
+        return StoreVirtuals.get(target) || [];
     }
 }

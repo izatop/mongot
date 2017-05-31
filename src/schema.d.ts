@@ -33,4 +33,5 @@ export interface PropRequiredDecorator {
 export declare const preq: PropRequiredDecorator;
 export declare const hook: (...args: any[]) => (target: any, propertyKey: string) => void;
 export declare const auto: (fn: Function) => (target: any, propertyKey: string) => void;
+export declare const virtual: (target: any, propertyKey: string | symbol) => void;
 export { ObjectID } from 'mongodb';

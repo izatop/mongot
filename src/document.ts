@@ -239,7 +239,7 @@ export class SchemaMetadata extends SchemaMutate {
 
     protected __mutate(document?: Object) {
         ok(typeof document && document !== null, `${this.constructor.name} an unexpected document type ${typeof document}`);
-        const properties = Object.assign({}, this.toObject(), document);
+        const properties = Object.assign({}, this.extract(), document);
 
         if (properties[PRIMARY_KEY_NAME]) {
             let _id = properties[PRIMARY_KEY_NAME];
@@ -285,6 +285,9 @@ export class SchemaMetadata extends SchemaMutate {
                 }
             });
 
+        MetadataStore.getSchemaVirtualMetadata(<typeof SchemaMetadata> (this['constructor']))
+            .forEach(key => properties.push({[key]: this[key]}));
+        
         return Object.assign({}, ...properties);
     }
 

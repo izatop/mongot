@@ -4,6 +4,7 @@ const StoreCollection = new WeakMap();
 const StoreCollectionIndexes = new WeakMap();
 const StoreType = new WeakMap();
 const StoreHooks = new WeakMap();
+const StoreVirtuals = new WeakMap();
 class MetadataStore {
     constructor() { }
     static setCollectionMetadata(target, name, construct, options) {
@@ -58,6 +59,15 @@ class MetadataStore {
     }
     static getSchemaHookMetadata(target) {
         return StoreHooks.get(target);
+    }
+    static setSchemaVirtualMetadata(target, virtual) {
+        if (false === StoreVirtuals.has(target)) {
+            StoreVirtuals.set(target, []);
+        }
+        StoreVirtuals.get(target).push(virtual);
+    }
+    static getSchemaVirtualMetadata(target) {
+        return StoreVirtuals.get(target) || [];
     }
 }
 exports.MetadataStore = MetadataStore;

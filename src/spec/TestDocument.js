@@ -131,6 +131,11 @@ __decorate([
     __metadata("design:type", schema_1.ObjectID)
 ], TestDocument.prototype, "someId", void 0);
 __decorate([
+    schema_1.virtual,
+    __metadata("design:type", Object),
+    __metadata("design:paramtypes", [])
+], TestDocument.prototype, "sum", null);
+__decorate([
     schema_1.hook(collection_1.Events.beforeInsert),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),

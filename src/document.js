@@ -196,7 +196,7 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
     }
     __mutate(document) {
         assert_1.ok(typeof document && document !== null, `${this.constructor.name} an unexpected document type ${typeof document}`);
-        const properties = Object.assign({}, this.toObject(), document);
+        const properties = Object.assign({}, this.extract(), document);
         if (properties[exports.PRIMARY_KEY_NAME]) {
             let _id = properties[exports.PRIMARY_KEY_NAME];
             if (typeof _id === 'string') {
@@ -234,6 +234,8 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
                 properties.push({ [key]: TypeCast.toPlainValue(this[key]) });
             }
         });
+        store_1.MetadataStore.getSchemaVirtualMetadata((this['constructor']))
+            .forEach(key => properties.push({ [key]: this[key] }));
         return Object.assign({}, ...properties);
     }
     toJSON() {

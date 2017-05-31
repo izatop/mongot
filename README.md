@@ -175,6 +175,40 @@ class PartialUser extends PartialDocumentFragment {
 )();
 ```
 
+#### Virtual getter
+
+You can mark a schema getter by `@virtual` decorator if you want to 
+serialize the getter value with `toJSON()` or `toObject()`.
+ 
+Example
+```ts
+
+@document
+class UserDocument extends SchemaDocument {
+    @prop firstName: string;
+    @prop lastName?: string;
+    
+    @virtual get displayName(): string {
+        return [this.firstName, this.lastName]
+            .filter(x => !!x)
+            .join(' ')
+    }
+}
+
+const user = new UserDocument({firstName: 'User', lastName: 'Name'});
+console.log(JSON.stringify(user));
+```
+
+you'll get
+
+```json
+{
+  "firstName": "User",
+  "lastName": "Name",
+  "displayName": "User Name"
+}
+```
+
 ## License
 
 MIT

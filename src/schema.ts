@@ -148,4 +148,8 @@ export const auto = (fn: Function) => {
     }
 };
 
+export const virtual = (target: any, propertyKey: string | symbol) => {
+    MetadataStore.setSchemaVirtualMetadata(target.constructor, propertyKey);
+};
+
 export {ObjectID} from 'mongodb';
