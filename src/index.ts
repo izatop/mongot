@@ -15,14 +15,15 @@ class Repository {
     }
     
     destroy() {
-        return this.state.then(connection => connection.disconnect(), error => error);
+        return this.state.then((connection: Connection) => connection.disconnect(), error => error);
     }
 }
 
 export {Repository};
-export {Connection};
-export {Collection};
 
+export * from './connection';
+export * from './collection';
+export * from './collection/helpers';
 export * from './document';
 export * from './schema';
 export * from './cursor';

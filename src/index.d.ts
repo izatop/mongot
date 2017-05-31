@@ -11,8 +11,9 @@ declare class Repository {
     destroy(): Promise<any>;
 }
 export { Repository };
-export { Connection };
-export { Collection };
+export * from './connection';
+export * from './collection';
+export * from './collection/helpers';
 export * from './document';
 export * from './schema';
 export * from './cursor';
