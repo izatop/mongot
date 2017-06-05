@@ -64,6 +64,13 @@ export declare class Cursor<T extends Object> extends EventEmitter {
         [key: string]: number;
     }): this;
     /**
+     * @param hint
+     * @returns {Cursor<T>}
+     */
+    hint(hint: {
+        [key: string]: string | number;
+    }): this;
+    /**
      * @deprecated A hasNext() method in some combination with fetch causes error "cursor is exhausted".
      *
      * @returns {Promise<boolean>}
