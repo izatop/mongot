@@ -1,15 +1,12 @@
 import { SchemaMetadata } from "../document";
 import { Collection } from "../collection";
+import { indexSpecType } from "../schema";
 export declare class MetadataStore {
     private constructor();
     static setCollectionMetadata(target: typeof Collection, name: string, construct?: typeof SchemaMetadata, options?: Object): void;
-    static setCollectionIndexMetadata(target: typeof Collection, indexOrSpec: string | {
-        [key: string]: 1 | -1;
-    }, options?: Object): void;
+    static setCollectionIndexMetadata(target: typeof Collection, indexOrSpec: indexSpecType, options?: Object): void;
     static getCollectionIndexMetadata(target: typeof Collection): {
-        indexOrSpec: string | {
-            [key: string]: 1 | -1;
-        };
+        indexOrSpec: indexSpecType;
         options?: Object;
     }[];
     static getCollectionMetadata(target: typeof Collection): {

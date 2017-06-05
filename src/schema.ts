@@ -14,6 +14,7 @@ export interface CollectionDecorator {
     ): (constructor: typeof Collection) => void;
 }
 
+export type indexSpecType = string | {[key: string]: 1 | -1 | 'text' | 'hashed' | '2dsphere'};
 export interface IndexDecorator {
     (
         indexOrSpec: string | {[key: string]: 1 | -1},
@@ -30,7 +31,7 @@ export const collection: CollectionDecorator = (name: string, construct: typeof 
     }
 };
 
-export const index: IndexDecorator = (indexOrSpec: string | {[key: string]: 1 | -1}, options?: MongoDb.IndexOptions) => {
+export const index: IndexDecorator = (indexOrSpec: indexSpecType, options?: MongoDb.IndexOptions) => {
     return (target: typeof Collection): void => {
         MetadataStore.setCollectionIndexMetadata(target, indexOrSpec, options);
     }

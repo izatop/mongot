@@ -5,6 +5,9 @@ import { SchemaMetadata } from "./document";
 export interface CollectionDecorator {
     (name: string, schema: typeof SchemaMetadata, options?: MongoDb.CollectionCreateOptions | MongoDb.CollectionOptions): (constructor: typeof Collection) => void;
 }
+export declare type indexSpecType = string | {
+    [key: string]: 1 | -1 | 'text' | 'hashed' | '2dsphere';
+};
 export interface IndexDecorator {
     (indexOrSpec: string | {
         [key: string]: 1 | -1;

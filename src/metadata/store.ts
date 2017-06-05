@@ -1,8 +1,9 @@
 import {SchemaMetadata} from "../document";
 import {Collection} from "../collection";
+import {indexSpecType} from "../schema";
 
 const StoreCollection: WeakMap<typeof Collection, {name: string; construct?: typeof SchemaMetadata; options?: Object}> = new WeakMap();
-const StoreCollectionIndexes: WeakMap<typeof Collection, {indexOrSpec: string | {[key: string]: 1 | -1}, options?: Object}[]> = new WeakMap();
+const StoreCollectionIndexes: WeakMap<typeof Collection, {indexOrSpec: indexSpecType, options?: Object}[]> = new WeakMap();
 const StoreType: WeakMap<typeof SchemaMetadata, Map<string | symbol, {type?: any; proto?: any; required?: boolean}>> = new WeakMap();
 const StoreHooks: WeakMap<typeof SchemaMetadata, Map<string, string[]>> = new WeakMap();
 const StoreVirtuals: WeakMap<typeof SchemaMetadata, Array<string | symbol>> = new WeakMap();
@@ -14,7 +15,7 @@ export class MetadataStore {
         StoreCollection.set(target, {name, construct, options});
     }
 
-    static setCollectionIndexMetadata(target: typeof Collection, indexOrSpec: string | {[key: string]: 1 | -1}, options?: Object) {
+    static setCollectionIndexMetadata(target: typeof Collection, indexOrSpec: indexSpecType, options?: Object) {
         StoreCollectionIndexes.set(target, [
             ...(StoreCollectionIndexes.get(target) || []),
             {
@@ -78,15 +79,15 @@ export class MetadataStore {
     static getSchemaHookMetadata(target: typeof SchemaMetadata) {
         return StoreHooks.get(target);
     }
-    
+
     static setSchemaVirtualMetadata(target: typeof SchemaMetadata, virtual: string | symbol) {
         if (false === StoreVirtuals.has(target)) {
             StoreVirtuals.set(target, []);
         }
-        
+
         StoreVirtuals.get(target).push(virtual);
     }
-    
+
     static getSchemaVirtualMetadata(target: typeof SchemaMetadata) {
         return StoreVirtuals.get(target) || [];
     }
