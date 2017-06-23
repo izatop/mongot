@@ -26,6 +26,7 @@ export declare class SchemaMetadata extends SchemaMutate {
     protected getDefinedHooks(): Map<string, string[]>;
     toObject(): any;
     toJSON(): any;
+    clone(): this;
     extract(): any;
     static factory<T extends SchemaMetadata>(document?: Object): T;
 }

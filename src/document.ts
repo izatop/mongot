@@ -44,30 +44,30 @@ export class TypeCast {
                 return value;
         }
     }
-    
+
     static toPlainValue(value: any) {
         switch (typeof value) {
             case 'object': {
                 if (value === null) {
                     return value;
                 }
-                
+
                 if (value instanceof ObjectID) {
                     return value.toString();
                 }
-                
+
                 if (value instanceof SchemaMetadata) {
                     return value.toObject();
                 }
-                
+
                 if (value instanceof SchemaArray) {
                     return value.toArray();
                 }
-                
+
                 if (Array.isArray(value)) {
                     return value.map(x => TypeCast.toPlainValue(x));
                 }
-                
+
                 if (Object.prototype.toString.call(value) === '[object Object]') {
                     return Object.assign(
                         {},
@@ -78,31 +78,31 @@ export class TypeCast {
                     return value;
                 }
             }
-            
+
             default:
                 return value;
         }
     }
-    
+
     static extract(value: any) {
         switch (typeof value) {
             case 'object': {
                 if (value === null) {
                     return value;
                 }
-                
+
                 if (value instanceof SchemaMetadata) {
                     return value.extract();
                 }
-                
+
                 if (value instanceof SchemaArray) {
                     return [...value].map(v => TypeCast.extract(v));
                 }
-                
+
                 if (Array.isArray(value)) {
                     return value.map(x => TypeCast.extract(x));
                 }
-                
+
                 if (Object.prototype.toString.call(value) === '[object Object]') {
                     return Object.assign(
                         {},
@@ -114,7 +114,7 @@ export class TypeCast {
                     return value;
                 }
             }
-            
+
             default:
                 return value;
         }
@@ -287,14 +287,24 @@ export class SchemaMetadata extends SchemaMutate {
 
         MetadataStore.getSchemaVirtualMetadata(<typeof SchemaMetadata> (this['constructor']))
             .forEach(key => properties.push({[key]: this[key]}));
-        
+
         return Object.assign({}, ...properties);
     }
 
     toJSON() {
         return this.toObject();
     }
-    
+
+    clone(): this {
+        const cloned = this.toObject();
+        if (cloned._id) {
+            delete cloned._id
+        }
+
+        const constructor: any = this.constructor;
+        return new constructor().__mutate(cloned) as this;
+    }
+
     extract() {
         const properties = [];
         Object.keys(this)
@@ -303,7 +313,7 @@ export class SchemaMetadata extends SchemaMutate {
                     properties.push({[key]: TypeCast.extract(this[key])});
                 }
             });
-    
+
         return Object.assign({}, ...properties);
     }
 

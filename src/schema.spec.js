@@ -60,4 +60,19 @@ wrap_1.default('Schema extending', (assert) => __awaiter(this, void 0, void 0, f
     }
     assert.equal(matches, 0, 'TestExtend should extend any TestBase properties.');
 }));
+wrap_1.default('Document', (assert) => __awaiter(this, void 0, void 0, function* () {
+    const collection = connect_1.default('schema-test').get(TestCollection_1.TestCollection);
+    const data = {
+        name: 'clone',
+        number: Math.random(),
+        date: new Date()
+    };
+    const document = collection.factory(Object.assign({}, data, { _id: '555330303030303331323132' }));
+    const documentClean = collection.factory(Object.assign({}, data));
+    assert.notEqual(document.clone(), document, 'Clone should be clean object');
+    assert.ok(document.clone() instanceof TestDocument_1.TestDocument, 'Clone should be TestDocument');
+    assert.same(document.clone().toObject(), documentClean.toObject(), 'Document should clone');
+    yield collection.drop();
+    return (yield collection.connection).disconnect();
+}));
 //# sourceMappingURL=schema.spec.js.map

@@ -1,7 +1,7 @@
 import test from './spec/wrap';
 import repo from './spec/connect';
 import {TestCollection} from './spec/TestCollection';
-import {TestDocument, ChildFragment} from './spec/TestDocument';
+import {ChildFragment, TestDocument} from './spec/TestDocument';
 import {TestBase} from "./spec/TestBase";
 import {MetadataStore} from "./metadata/store";
 import {TestExtend} from "./spec/TestExtend";
@@ -20,7 +20,7 @@ test('Schema', async (t) => {
 
     document.children.push({min: 3, max: 4});
     document.listOfNumbers.push(4);
-    
+
     t.equal(document.toObject().sum, document.listOfNumbers.reduce((l,r) => l+r), 'A @virtual getter should export sum property by toObject()');
     t.ok(document.someId instanceof ObjectID, 'TestDocument.someId should be ObjectID');
     t.ok(document instanceof TestDocument, 'TestCollection.factory() should return instance of the TestDocument class');
@@ -57,6 +57,25 @@ test('Schema extending', async assert => {
         matches--;
         assert.same(schema, extended[key], `A schema key ${key} should exists in extended document`);
     }
-    
+
     assert.equal(matches, 0, 'TestExtend should extend any TestBase properties.');
+});
+
+test('Document', async assert => {
+    const collection = repo('schema-test').get(TestCollection);
+    const data = {
+        name: 'clone',
+        number: Math.random(),
+        date: new Date()
+    };
+
+    const document = collection.factory(Object.assign({}, data, {_id: '555330303030303331323132'}));
+    const documentClean = collection.factory(Object.assign({}, data));
+
+    assert.notEqual(document.clone(), document, 'Clone should be clean object');
+    assert.ok(document.clone() instanceof TestDocument, 'Clone should be TestDocument');
+    assert.same(document.clone().toObject(), documentClean.toObject(), 'Document should clone');
+
+    await collection.drop();
+    return (await collection.connection).disconnect();
 });

@@ -241,6 +241,14 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
     toJSON() {
         return this.toObject();
     }
+    clone() {
+        const cloned = this.toObject();
+        if (cloned._id) {
+            delete cloned._id;
+        }
+        const constructor = this.constructor;
+        return new constructor().__mutate(cloned);
+    }
     extract() {
         const properties = [];
         Object.keys(this)
