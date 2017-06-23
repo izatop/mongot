@@ -1,6 +1,6 @@
 {
   "name": "mongot",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "MongoT is a modern ODM library for MongoDb.",
   "main": "src/index.js",
   "types": "src/index.d.ts",
