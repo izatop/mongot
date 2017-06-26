@@ -12,7 +12,7 @@ export namespace Events {
     export const beforeInsert = 'beforeInsert';
     export const beforeUpdate = 'beforeUpdate';
     export const beforeDelete = 'beforeDelete';
-    
+
     export const afterInsert = 'afterInsert';
     export const afterUpdate = 'afterUpdate';
     export const afterDelete = 'afterDelete';
@@ -28,7 +28,7 @@ class Collection<TDocument extends SchemaDocument> {
 
     public readonly name: string;
     public readonly connection: Promise<Connection>;
-    
+
     constructor(
         connection: Promise<Connection>,
         name?: string,
@@ -37,17 +37,17 @@ class Collection<TDocument extends SchemaDocument> {
     ) {
         const metadata = MetadataStore.getCollectionMetadata(<typeof Collection> this.constructor) || <any> {};
         const indexes = MetadataStore.getCollectionIndexMetadata(<typeof Collection> this.constructor) || [];
-        
+
         this.name = name || metadata.name;
         this.construct = construct || metadata.construct;
-        
+
         // this.state provide a collection instance from a lazy connection
         this.state = connection.then(
             (connection: Connection) => connection.get(this.name, options || metadata.options)
         );
-        
+
         this.connection = connection;
-    
+
         this.queue(async collection => {
             const existing = await collection.indexes();
             indexes.forEach(index => {
@@ -59,7 +59,7 @@ class Collection<TDocument extends SchemaDocument> {
                         .map(key => `${key}_${index.indexOrSpec[key]}`)
                         .join('_');
                 }
-            
+
                 if (existing.filter(x => x.name == indexName).length === 0) {
                     this.createIndex(index.indexOrSpec, Object.assign({background: true}, index.options))
                         .catch(error => {
@@ -69,7 +69,7 @@ class Collection<TDocument extends SchemaDocument> {
             });
         });
     }
-    
+
     get collection(): PromiseLike<MongoDb.Collection> {
         return this.state;
     }
@@ -86,25 +86,25 @@ class Collection<TDocument extends SchemaDocument> {
             return Promise.reject(error);
         }
     }
-    
+
     private filter(filter: Object | TDocument | string | ObjectID): Object {
         if (filter instanceof SchemaDocument) {
             return {_id: filter._id};
         }
-        
+
         return this.normalizeQuery(filter);
     }
-    
+
     private normalizeQuery(query: Object | ObjectID | string) {
         if (query instanceof ObjectID) {
             return {_id: query};
         } else if (typeof query === 'string') {
             return {_id: ObjectID.createFromHexString(query)};
         }
-        
+
         return new Query(this.construct, query).format();
     }
-    
+
     /**
      * @param document
      * @returns {TDocument}
@@ -112,34 +112,26 @@ class Collection<TDocument extends SchemaDocument> {
     factory(document?: Partial<TDocument>): TDocument {
         return this.construct.factory(document) as TDocument;
     }
-    
+
     /**
      * @param document
      * @returns {Promise<UpdateResult | InsertResult>}
      */
     save(document: TDocument | Partial<TDocument>): Promise<UpdateResult | InsertResult<TDocument>> {
         ok(document && typeof document === 'object', 'Collection.save(document) require an object or an instance of SchemaDocument.');
-    
+
         let prepared: TDocument = document as TDocument;
         if (false === document instanceof SchemaDocument) {
             prepared = this.factory(document);
         }
-        
+
         if (prepared._id) {
-            const update = prepared.extract();
-            return this.updateOne(prepared, {
-                $set: Object.assign(
-                    {},
-                    ...Object.keys(update)
-                        .filter(key => key !== PRIMARY_KEY_NAME)
-                        .map(key => ({[key]: update[key]}))
-                )
-            });
+            return this.updateOne(this.filter(prepared), prepared);
         }
 
         return this.insertOne(prepared);
     }
-    
+
     /**
      * @param pipeline
      * @param options
@@ -148,7 +140,7 @@ class Collection<TDocument extends SchemaDocument> {
     aggregate(pipeline: Object[], options?: MongoDb.CollectionAggregationOptions) {
         return this.queue(collection => collection.aggregate(pipeline, options));
     }
-    
+
     /**
      * @param operations
      * @param options
@@ -157,7 +149,7 @@ class Collection<TDocument extends SchemaDocument> {
     bulkWrite<TResult extends MongoDb.BulkWriteResult>(operations: Object[], options: MongoDb.CollectionBluckWriteOptions): Promise<TResult> {
         return this.queue(collection => collection.bulkWrite(operations, options));
     }
-    
+
     /**
      * @param query
      * @param options
@@ -166,7 +158,7 @@ class Collection<TDocument extends SchemaDocument> {
     count(query: Object, options: MongoDb.MongoCountPreferences): Promise<number> {
         return this.queue(collection => collection.count(this.normalizeQuery(query), options));
     }
-    
+
     /**
      * @param fieldOrSpec
      * @param options
@@ -175,7 +167,7 @@ class Collection<TDocument extends SchemaDocument> {
     createIndex(fieldOrSpec: string|any, options: MongoDb.IndexOptions) {
         return this.queue(collection => collection.createIndex(fieldOrSpec, options));
     }
-    
+
     /**
      * @param indexSpecs
      * @returns void
@@ -183,7 +175,7 @@ class Collection<TDocument extends SchemaDocument> {
     createIndexes(indexSpecs: Object[]) {
         return this.queue(collection => collection.createIndexes(indexSpecs));
     }
-    
+
     /**
      * @param filter
      * @param options
@@ -193,7 +185,7 @@ class Collection<TDocument extends SchemaDocument> {
             new DeleteResult(await collection.deleteMany(this.normalizeQuery(filter), options))
         );
     }
-    
+
     /**
      * @param filter
      * @param options
@@ -204,14 +196,14 @@ class Collection<TDocument extends SchemaDocument> {
                 await filter.call(Events.beforeDelete, this);
                 const deleteResult = new DeleteResult(await collection.deleteOne(this.filter(filter), options));
                 await filter.call(Events.afterDelete, this);
-                
+
                 return deleteResult;
             }
-            
+
             return new DeleteResult(await collection.deleteOne(filter, options));
         });
     }
-    
+
     /**
      * @param key
      * @param query
@@ -220,7 +212,7 @@ class Collection<TDocument extends SchemaDocument> {
     distinct(key: string, query: Object, options?: { readPreference?: MongoDb.ReadPreference | string }) {
         return this.queue(collection => collection.distinct(key, this.normalizeQuery(query), options));
     }
-    
+
     /**
      * @TODO
      */
@@ -234,14 +226,14 @@ class Collection<TDocument extends SchemaDocument> {
     dropIndex(indexName: string, options?: MongoDb.CollectionOptions) {
         return this.queue(collection => collection.dropIndex(indexName, options))
     }
-    
+
     /**
      * @TODO
      */
     dropIndexes() {
         return this.queue(collection => collection.dropIndexes());
     }
-    
+
     /**
      * @param query
      * @returns {Cursor<TDocument>}
@@ -254,7 +246,7 @@ class Collection<TDocument extends SchemaDocument> {
             )
         );
     }
-    
+
     /**
      * @param query
      * @param options
@@ -267,10 +259,10 @@ class Collection<TDocument extends SchemaDocument> {
         if (options && options.sort) {
             cursor.sort(<any> options.sort);
         }
-        
+
         return cursor.fetch();
     }
-    
+
     /**
      * @param filter
      * @param options
@@ -282,7 +274,7 @@ class Collection<TDocument extends SchemaDocument> {
             return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d: Partial<TDocument>) => this.factory(d)});
         });
     }
-    
+
     /**
      * @param filter
      * @param replacement
@@ -295,7 +287,7 @@ class Collection<TDocument extends SchemaDocument> {
             return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d: Partial<TDocument>) => this.factory(d)});
         });
     }
-    
+
     /**
      * @param filter
      * @param update
@@ -308,7 +300,7 @@ class Collection<TDocument extends SchemaDocument> {
             return new FindAndModifyResult({lastErrorObject: result.lastErrorObject, value: result.value, factory: (d: Partial<TDocument>) => this.factory(d)});
         });
     }
-    
+
     /**
      * @TODO Update returns definitions.
      *
@@ -320,7 +312,7 @@ class Collection<TDocument extends SchemaDocument> {
     geoHaystackSearch(x: number, y: number, options?: MongoDb.GeoHaystackSearchOptions): Promise<{results: any[]}> {
         return this.queue(collection => collection.geoHaystackSearch(x, y, options));
     }
-    
+
     /**
      * @TODO Update returns definitions.
      *
@@ -332,42 +324,42 @@ class Collection<TDocument extends SchemaDocument> {
     geoNear(x: number, y: number, options?: MongoDb.GeoNearOptions): Promise<{results: any[]}> {
         return this.queue(collection => collection.geoNear(x, y, options));
     }
-    
+
     /**
      * @TODO
      */
     indexes() {
         return this.queue(collection => collection.indexes());
     }
-    
+
     /**
      * @TODO
      */
     indexExists(indexes: string | string[]) {
         return this.queue(collection => collection.indexExists(indexes));
     }
-    
+
     /**
      * @TODO
      */
     indexInformation(options?: { full: boolean }) {
         return this.queue(collection => collection.indexInformation(options));
     }
-    
+
     /**
      * @TODO
      */
     initializeOrderedBulkOp(options?: MongoDb.CollectionOptions) {
         return this.queue(collection => collection.initializeOrderedBulkOp(options));
     }
-    
+
     /**
      * @TODO
      */
     initializeUnorderedBulkOp(options?: MongoDb.CollectionOptions) {
         return this.queue(collection => collection.initializeUnorderedBulkOp(options));
     }
-    
+
     private createObjectReference(doc: TDocument) {
         const reference = {
             [Symbol.for('ref')]: [doc],
@@ -375,10 +367,10 @@ class Collection<TDocument extends SchemaDocument> {
                 return this[Symbol.for('ref')].pop(); // delete reference for original document
             }
         };
-        
+
         return Object.assign(reference, doc.extract());
     }
-    
+
     /**
      * @TODO Mutate result
      *
@@ -399,7 +391,7 @@ class Collection<TDocument extends SchemaDocument> {
             return insertResultList;
         });
     }
-    
+
     /**
      * @param document
      * @param options
@@ -421,56 +413,56 @@ class Collection<TDocument extends SchemaDocument> {
             return insertResult;
         });
     }
-    
+
     /**
      * @TODO
      */
     isCapped() {
         return this.queue(collection => collection.isCapped());
     }
-    
+
     /**
      * @TODO
      */
     listIndexes(options?: { batchSize?: number, readPreference?: MongoDb.ReadPreference | string }) {
         return this.queue(collection => collection.listIndexes(options));
     }
-    
+
     /**
      * @TODO
      */
     mapReduce<TResult>(map: Function | string, reduce: Function | string, options?: MongoDb.MapReduceOptions):Promise<TResult> {
         return this.queue(collection => collection.mapReduce(map, reduce, options));
     }
-    
+
     /**
      * @TODO
      */
     options() {
         return this.queue(collection => collection.options());
     }
-    
+
     /**
      * @TODO
      */
     parallelCollectionScan(options?: MongoDb.ParallelCollectionScanOptions) {
         return this.queue(collection => collection.parallelCollectionScan(options));
     }
-    
+
     /**
      * @TODO
      */
     reIndex() {
         return this.queue(collection => collection.reIndex());
     }
-    
+
     /**
      * @TODO
      */
     rename(newName: string, options?: { dropTarget?: boolean }) {
         return this.queue(collection => collection.rename(newName, options));
     }
-    
+
     /**
      * @TODO Update returns definitions.
      *
@@ -482,14 +474,14 @@ class Collection<TDocument extends SchemaDocument> {
     replaceOne(filter: Object, doc: Object, options?: MongoDb.ReplaceOneOptions) {
         return this.queue(collection => collection.replaceOne(filter, doc, options));
     }
-    
+
     /**
      * @TODO
      */
     stats(options?: { scale: number }) {
         return this.queue(collection => collection.stats(options));
     }
-    
+
     /**
      * @param filter
      * @param update
@@ -501,7 +493,7 @@ class Collection<TDocument extends SchemaDocument> {
             return new UpdateResult(await collection.updateMany(this.normalizeQuery(filter), update, options));
         });
     }
-    
+
     /**
      * @param filter
      * @param update
@@ -510,29 +502,18 @@ class Collection<TDocument extends SchemaDocument> {
      */
     updateOne(filter: Object | SchemaDocument, update: Object | SchemaDocument, options?: Object): Promise<UpdateResult> {
         return this.queue(async (collection): Promise<UpdateResult> => {
-            let beforeUpdate = () => void 0;
-            let afterUpdate = () => void 0;
             let updateSchema = update;
-
-            if (filter instanceof SchemaDocument) {
-                beforeUpdate = () => filter.call(Events.beforeUpdate, this);
-                afterUpdate = () => filter.call(Events.afterUpdate, this);
-            }
-
             if (update instanceof SchemaDocument) {
-                beforeUpdate = () => update.call(Events.beforeUpdate, this);
-                afterUpdate = () => update.call(Events.afterUpdate, this);
-            }
-
-            await beforeUpdate();
-
-            if (update instanceof SchemaDocument) {
+                await update.call(Events.beforeUpdate, this);
                 const {_id, ...document}: any = update.extract();
-                updateSchema = document;
+                updateSchema = {$set: document};
             }
 
             const updateResult = new UpdateResult(await collection.updateOne(this.filter(filter), updateSchema, options));
-            await afterUpdate();
+
+            if (update instanceof SchemaDocument) {
+                await update.call(Events.afterUpdate, this);
+            }
 
             return updateResult;
         });

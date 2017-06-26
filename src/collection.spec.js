@@ -219,6 +219,8 @@ wrap_1.default('Collection.save()', (t) => __awaiter(this, void 0, void 0, funct
     t.ok(res2 instanceof helpers_1.InsertResult && res2.insertedId, 'collection.save({name: bar}) should be ok');
     const res3 = yield collection.save(collection.factory({ name: 'bar', number: 4 }));
     t.ok(res3 instanceof helpers_1.InsertResult && res3.insertedId, 'collection.save(collection.factory({name: bar})) should be ok');
+    t.equal(ref.version, 2, 'An in-Memory document version should be valid');
+    t.equal((yield collection.findOne(ref._id)).version, 2, 'A saved document version should be valid');
     yield collection.drop();
     return (yield collection.connection).disconnect();
 }));

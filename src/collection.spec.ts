@@ -265,6 +265,9 @@ test('Collection.save()', async t => {
     const res3 = await collection.save(collection.factory({name: 'bar', number: 4}));
     t.ok(res3 instanceof InsertResult && res3.insertedId, 'collection.save(collection.factory({name: bar})) should be ok');
 
+    t.equal(ref.version, 2, 'An in-Memory document version should be valid');
+    t.equal((await collection.findOne(ref._id)).version, 2, 'A saved document version should be valid');
+
     await collection.drop();
     return (await collection.connection).disconnect();
 });

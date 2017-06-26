@@ -114,12 +114,7 @@ class Collection {
             prepared = this.factory(document);
         }
         if (prepared._id) {
-            const update = prepared.extract();
-            return this.updateOne(prepared, {
-                $set: Object.assign({}, ...Object.keys(update)
-                    .filter(key => key !== document_1.PRIMARY_KEY_NAME)
-                    .map(key => ({ [key]: update[key] })))
-            });
+            return this.updateOne(this.filter(prepared), prepared);
         }
         return this.insertOne(prepared);
     }
@@ -447,24 +442,16 @@ class Collection {
      */
     updateOne(filter, update, options) {
         return this.queue((collection) => __awaiter(this, void 0, void 0, function* () {
-            let beforeUpdate = () => void 0;
-            let afterUpdate = () => void 0;
             let updateSchema = update;
-            if (filter instanceof document_1.SchemaDocument) {
-                beforeUpdate = () => filter.call(Events.beforeUpdate, this);
-                afterUpdate = () => filter.call(Events.afterUpdate, this);
-            }
             if (update instanceof document_1.SchemaDocument) {
-                beforeUpdate = () => update.call(Events.beforeUpdate, this);
-                afterUpdate = () => update.call(Events.afterUpdate, this);
-            }
-            yield beforeUpdate();
-            if (update instanceof document_1.SchemaDocument) {
+                yield update.call(Events.beforeUpdate, this);
                 const _a = update.extract(), { _id } = _a, document = __rest(_a, ["_id"]);
-                updateSchema = document;
+                updateSchema = { $set: document };
             }
             const updateResult = new helpers_1.UpdateResult(yield collection.updateOne(this.filter(filter), updateSchema, options));
-            yield afterUpdate();
+            if (update instanceof document_1.SchemaDocument) {
+                yield update.call(Events.afterUpdate, this);
+            }
             return updateResult;
         }));
     }
