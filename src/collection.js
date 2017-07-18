@@ -124,7 +124,7 @@ class Collection {
      * @returns {any}
      */
     aggregate(pipeline, options) {
-        return this.queue(collection => collection.aggregate(pipeline, options));
+        return this.queue(collection => collection.aggregate(this.normalizeQuery(pipeline), options));
     }
     /**
      * @param operations

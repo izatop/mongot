@@ -138,7 +138,7 @@ class Collection<TDocument extends SchemaDocument> {
      * @returns {any}
      */
     aggregate(pipeline: Object[], options?: MongoDb.CollectionAggregationOptions) {
-        return this.queue(collection => collection.aggregate(pipeline, options));
+        return this.queue(collection => collection.aggregate(this.normalizeQuery(pipeline), options));
     }
 
     /**
