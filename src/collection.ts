@@ -138,7 +138,15 @@ class Collection<TDocument extends SchemaDocument> {
      * @returns {any}
      */
     aggregate(pipeline: Object[], options?: MongoDb.CollectionAggregationOptions) {
-        return this.queue(collection => collection.aggregate(this.normalizeQuery(pipeline), options));
+        const _pipeline = pipeline.map(x => {
+            if ('$match' in x) {
+                x['$match'] = this.normalizeQuery(x['$match']);
+            }
+
+            return x;
+        });
+
+        return this.queue(collection => collection.aggregate(_pipeline, options));
     }
 
     /**
