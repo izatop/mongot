@@ -211,9 +211,9 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
             .filter(field => field !== exports.PRIMARY_KEY_NAME)
             .forEach(key => {
             if (!Object.getOwnPropertyDescriptor(this, key)) {
-                // @TODO Add strict checking for skipped properties
+                // @TODO Add checks for virtual properties and some meta
                 // throw new Error(`Schema ${this.constructor.name} unknown property: ${key}`);
-                console.error(`Schema ${this.constructor.name} has unknown property: ${key}`);
+                // console.error(`Schema ${this.constructor.name} has unknown property: ${key}`);
                 return;
             }
             this[key] = properties[key];
