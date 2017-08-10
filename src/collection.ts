@@ -155,7 +155,7 @@ class Collection<TDocument extends SchemaDocument> {
      * @returns {any}
      */
     bulkWrite<TResult extends MongoDb.BulkWriteResult>(operations: Object[], options: MongoDb.CollectionBluckWriteOptions): Promise<TResult> {
-        return this.queue(collection => collection.bulkWrite(operations, options));
+        return this.queue(collection => collection.bulkWrite(operations, options)) as Promise<TResult>;
     }
 
     /**
@@ -250,7 +250,7 @@ class Collection<TDocument extends SchemaDocument> {
         return this.queue((collection): Cursor<TDocument> =>
             new Cursor<TDocument>(
                 collection.find(this.normalizeQuery(query)),
-                (document) => this.factory(document)
+                (document) => this.factory(document) as any
             )
         );
     }

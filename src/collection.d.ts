@@ -228,7 +228,7 @@ declare class Collection<TDocument extends SchemaDocument> {
      */
     rename(newName: string, options?: {
         dropTarget?: boolean;
-    }): Promise<MongoDb.Collection>;
+    }): Promise<MongoDb.Collection<any>>;
     /**
      * @TODO Update returns definitions.
      *
@@ -237,7 +237,9 @@ declare class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<UpdateWriteOpResult>}
      */
-    replaceOne(filter: Object, doc: Object, options?: MongoDb.ReplaceOneOptions): Promise<MongoDb.UpdateWriteOpResult>;
+    replaceOne(filter: Object, doc: Object, options?: MongoDb.ReplaceOneOptions): Promise<MongoDb.UpdateWriteOpResult & {
+        ops: any[];
+    }>;
     /**
      * @TODO
      */

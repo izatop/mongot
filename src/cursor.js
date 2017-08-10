@@ -17,7 +17,6 @@ class Cursor extends events_1.EventEmitter {
      */
     constructor(cursor, transform) {
         super();
-        this.cast = (document) => document;
         if (typeof transform === 'function') {
             this.cast = transform;
             cursor.map(x => {
@@ -49,11 +48,11 @@ class Cursor extends events_1.EventEmitter {
     }
     /**
      * @param fields
-     * @returns {Cursor<T>}
+     * @returns {Cursor<PT>}
      */
     project(fields) {
         const oldCast = this.cast;
-        this.cast = row => {
+        this.cast = (row) => {
             const formalized = oldCast(row);
             return document_1.PartialDocumentFragment.factory(Object.assign({}, ...Object.keys(formalized)
                 .filter(key => key in row)

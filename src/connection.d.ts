@@ -1,7 +1,7 @@
 import * as MongoDb from 'mongodb';
 export declare class Connection {
     readonly db: MongoDb.Db;
-    private constructor(db);
+    private constructor();
     create(name: string, options?: MongoDb.CollectionCreateOptions): Promise<MongoDb.Collection>;
     get(name: string, options?: MongoDb.DbCollectionOptions): Promise<MongoDb.Collection>;
     disconnect(): Promise<void>;

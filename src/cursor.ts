@@ -1,20 +1,24 @@
 import * as MongoDb from 'mongodb';
 import {EventEmitter} from "events";
-import {PartialDocumentFragment} from "./document";
+import {PartialDocumentFragment, SchemaDocument, SchemaMetadata} from "./document";
 
-export interface Cursor<T extends Object> extends EventEmitter {
+export interface Cursor<T> extends EventEmitter {
     on(event: 'data', listener: (document:T) => void): this;
 }
 
-export class Cursor<T extends Object> extends EventEmitter {
+export interface CastFunction {
+    <TDoc>(document: Object): TDoc
+}
+
+export class Cursor<T> extends EventEmitter {
     public readonly cursor: MongoDb.Cursor<T>;
-    private cast: <TNewDocument>(document: Object) => TNewDocument = (document) => document;
+    private cast: CastFunction;
 
     /**
      * @param cursor
      * @param transform
      */
-    constructor(cursor: MongoDb.Cursor<T>, transform?: <TNewDocument>(document: Object) => TNewDocument) {
+    constructor(cursor: MongoDb.Cursor<T>, transform?: CastFunction) {
         super();
 
         if (typeof transform === 'function') {
@@ -53,18 +57,18 @@ export class Cursor<T extends Object> extends EventEmitter {
 
     /**
      * @param fields
-     * @returns {Cursor<T>}
+     * @returns {Cursor<PT>}
      */
-    project(fields: Object | string) {
+    project<PT>(fields: Object | string) {
         const oldCast = this.cast;
-        this.cast = row => {
+        this.cast = (row) => {
             const formalized = oldCast(row);
             return PartialDocumentFragment.factory(
                 Object.assign({}, ...Object.keys(formalized)
                     .filter(key => key in row)
                     .map(key => ({[key]: formalized[key]}))
                 )
-            );
+            ) as any;
         };
 
         if (typeof fields === 'string') {

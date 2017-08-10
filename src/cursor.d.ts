@@ -1,17 +1,20 @@
 /// <reference types="node" />
 import * as MongoDb from 'mongodb';
 import { EventEmitter } from "events";
-export interface Cursor<T extends Object> extends EventEmitter {
+export interface Cursor<T> extends EventEmitter {
     on(event: 'data', listener: (document: T) => void): this;
 }
-export declare class Cursor<T extends Object> extends EventEmitter {
+export interface CastFunction {
+    <TDoc>(document: Object): TDoc;
+}
+export declare class Cursor<T> extends EventEmitter {
     readonly cursor: MongoDb.Cursor<T>;
     private cast;
     /**
      * @param cursor
      * @param transform
      */
-    constructor(cursor: MongoDb.Cursor<T>, transform?: <TNewDocument>(document: Object) => TNewDocument);
+    constructor(cursor: MongoDb.Cursor<T>, transform?: CastFunction);
     /**
      * @returns {Cursor<T>}
      */
@@ -28,9 +31,9 @@ export declare class Cursor<T extends Object> extends EventEmitter {
     count(applySkipLimit?: boolean, options?: MongoDb.CursorCommentOptions): Promise<number>;
     /**
      * @param fields
-     * @returns {Cursor<T>}
+     * @returns {Cursor<PT>}
      */
-    project(fields: Object | string): this;
+    project<PT>(fields: Object | string): this;
     /**
      * @param value
      * @returns {Cursor<T>}

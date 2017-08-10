@@ -11,7 +11,7 @@ export interface CollectionDecorator {
         name: string,
         schema: typeof SchemaMetadata,
         options?: MongoDb.CollectionCreateOptions | MongoDb.CollectionOptions
-    ): (constructor: typeof Collection) => void;
+    ): (constructor: any) => void;
 }
 
 export type indexSpecType = string | {[key: string]: 1 | -1 | 'text' | 'hashed' | '2dsphere'};
@@ -20,7 +20,7 @@ export interface IndexDecorator {
     (
         indexOrSpec: indexSpecType,
         options?: MongoDb.IndexOptions
-    ): (constructor: typeof Collection) => void;
+    ): (constructor: any) => void;
 }
 
 export const collection: CollectionDecorator = (name: string, construct: typeof SchemaMetadata, options: Object = {}) => {
@@ -39,7 +39,7 @@ export const index: IndexDecorator = (indexOrSpec: indexSpecType, options?: Mong
 };
 
 export const indexes = (...specs: Array<[indexSpecType, MongoDb.IndexOptions] | [indexSpecType]>) => {
-    return (target: typeof Collection): void => {
+    return (target: any): void => {
         specs.forEach(spec => MetadataStore.setCollectionIndexMetadata(target, spec[0], spec[1] || {}));
     }
 };
