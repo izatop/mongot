@@ -2,7 +2,7 @@ import {ok} from 'assert';
 import {MetadataStore} from "./metadata/store";
 import {SchemaMutate} from './metadata/mutation';
 import {Collection} from "./collection";
-import {ObjectID} from "./schema";
+import {ObjectID, Long} from "./schema";
 
 export const PRIMARY_KEY_NAME = '_id';
 
@@ -15,6 +15,22 @@ export class TypeCast {
         switch (type) {
             case ObjectID:
                 return new ObjectID(value);
+
+            case Long:
+                if (value instanceof Long) {
+                    return value;
+                }
+
+                if (typeof value === 'number') {
+                    return Long.fromNumber(value);
+                } else if (typeof value === 'string') {
+                    return Long.fromString(value);
+                } else if (typeof value === 'object' && '_bsontype' in value) {
+                    return Long.fromBits(value['low_'], value['high_']);
+                }
+
+                // @TODO Think how to do with that unexpected behavior
+                return null;
 
             case String:
                 return TypeCast.castToString(value);
@@ -56,6 +72,10 @@ export class TypeCast {
                     return value.toString();
                 }
 
+                if (value instanceof Long) {
+                    return value.toJSON();
+                }
+
                 if (value instanceof SchemaMetadata) {
                     return value.toObject();
                 }
@@ -88,6 +108,10 @@ export class TypeCast {
         switch (typeof value) {
             case 'object': {
                 if (value === null) {
+                    return value;
+                }
+
+                if (value instanceof ObjectID || value instanceof Long) {
                     return value;
                 }
 

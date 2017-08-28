@@ -5,7 +5,7 @@ import {TestCollection} from "./spec/TestCollection";
 import {InsertResult, DeleteResult, UpdateResult} from "./collection/helpers";
 import {TestDocument} from "./spec/TestDocument";
 import {PartialDocumentFragment} from "./document";
-import {ObjectID} from "./schema";
+import {ObjectID, Long} from "./schema";
 
 function setupMany(collection: TestCollection, documents: Array<TestDocument>, raw?: Object[]) {
     const data: Object[] = raw || ['foo', 'bar', 'baz'].map(name => ({name}));
@@ -121,6 +121,8 @@ test('Collection.insertOne()', async (t) => {
     t.equals(document, result.ref, 'result.ref should be TestDocument');
     t.equals(document.version, 1, 'TestDocument.beforeInsert should be fired');
     t.same(document.toObject(), inserted.toObject(), 'TestDocument should be inserted correctly');
+    t.ok(document.long instanceof Long, 'TestDocument.long should be Long');
+    t.equal(document.toObject().long, document.long.toJSON(), 'TestDocument.toObject().long should correct');
 
     await collection.drop();
     return (await collection.connection).disconnect();

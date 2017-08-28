@@ -65,6 +65,7 @@ let TestDocument = class TestDocument extends document_1.SchemaDocument {
         this.any = {};
         this.deep = new FooFragment();
         this.date = new Date;
+        this.long = schema_1.Long.fromNumber(Math.round(Math.random() * 1000));
     }
     get sum() {
         return this.listOfNumbers.reduce((l, r) => l + r);
@@ -130,6 +131,10 @@ __decorate([
     schema_1.prop,
     __metadata("design:type", schema_1.ObjectID)
 ], TestDocument.prototype, "someId", void 0);
+__decorate([
+    schema_1.prop,
+    __metadata("design:type", schema_1.Long)
+], TestDocument.prototype, "long", void 0);
 __decorate([
     schema_1.virtual,
     __metadata("design:type", Object),

@@ -22,6 +22,21 @@ class TypeCast {
         switch (type) {
             case schema_1.ObjectID:
                 return new schema_1.ObjectID(value);
+            case schema_1.Long:
+                if (value instanceof schema_1.Long) {
+                    return value;
+                }
+                if (typeof value === 'number') {
+                    return schema_1.Long.fromNumber(value);
+                }
+                else if (typeof value === 'string') {
+                    return schema_1.Long.fromString(value);
+                }
+                else if (typeof value === 'object' && '_bsontype' in value) {
+                    return schema_1.Long.fromBits(value['low_'], value['high_']);
+                }
+                // @TODO Think how to do with that unexpected behavior
+                return null;
             case String:
                 return TypeCast.castToString(value);
             case Number:
@@ -51,6 +66,9 @@ class TypeCast {
                 if (value instanceof schema_1.ObjectID) {
                     return value.toString();
                 }
+                if (value instanceof schema_1.Long) {
+                    return value.toJSON();
+                }
                 if (value instanceof SchemaMetadata) {
                     return value.toObject();
                 }
@@ -76,6 +94,9 @@ class TypeCast {
         switch (typeof value) {
             case 'object': {
                 if (value === null) {
+                    return value;
+                }
+                if (value instanceof schema_1.ObjectID || value instanceof schema_1.Long) {
                     return value;
                 }
                 if (value instanceof SchemaMetadata) {

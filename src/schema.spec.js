@@ -44,6 +44,7 @@ wrap_1.default('Schema', (t) => __awaiter(this, void 0, void 0, function* () {
     t.equals(document.sum, 10, 'TestDocument.sum should match');
     t.equals(document.deep.bar.baz, 'hello', 'TestDocument.deep.bar.baz should match');
     t.equals(document.toJSON().date.toString(), document.date.toString(), 'TestDocument schema should serialize date to string');
+    t.ok(document.long instanceof schema_1.Long, 'TestDocument.long should be Long');
     yield document.call(collection_1.Events.beforeInsert, collection);
     t.equals(document.version, 1, 'TestDocument.version should be increased by beforeInsert hook');
     t.ok(typeof document.autoIncrement === 'number', 'TestDocument.autoIncrement should be number');
@@ -65,7 +66,8 @@ wrap_1.default('Document', (assert) => __awaiter(this, void 0, void 0, function*
     const data = {
         name: 'clone',
         number: Math.random(),
-        date: new Date()
+        date: new Date(),
+        long: schema_1.Long.fromNumber(Math.round(Math.random() * 1000))
     };
     const document = collection.factory(Object.assign({}, data, { _id: '555330303030303331323132' }));
     const documentClean = collection.factory(Object.assign({}, data));

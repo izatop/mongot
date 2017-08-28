@@ -154,4 +154,4 @@ export const virtual = (target: any, propertyKey: string | symbol) => {
     MetadataStore.setSchemaVirtualMetadata(target.constructor, propertyKey);
 };
 
-export {ObjectID} from 'mongodb';
+export {ObjectID, Long} from 'mongodb';

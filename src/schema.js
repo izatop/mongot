@@ -107,4 +107,5 @@ exports.virtual = (target, propertyKey) => {
 };
 var mongodb_1 = require("mongodb");
 exports.ObjectID = mongodb_1.ObjectID;
+exports.Long = mongodb_1.Long;
 //# sourceMappingURL=schema.js.map

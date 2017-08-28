@@ -1,5 +1,5 @@
 import {SchemaFragment, SchemaFragmentArray, SchemaDocument, SchemaArray} from '../document';
-import {prop, req, hook, fragment, auto, ObjectID, virtual} from '../schema';
+import {prop, req, hook, fragment, auto, ObjectID, Long, virtual} from '../schema';
 import {document} from "../schema";
 import {createNextAutoIncrementNumber} from "../collection/helpers";
 import {Events} from "../collection";
@@ -51,6 +51,8 @@ export class TestDocument extends SchemaDocument {
 
     @prop someId: ObjectID;
 
+    @prop long: Long = Long.fromNumber(Math.round(Math.random() * 1000));
+
     @virtual get sum() {
         return this.listOfNumbers.reduce((l, r) => l+r);
     }
@@ -60,7 +62,7 @@ export class TestDocument extends SchemaDocument {
         this.randomUniqueKey = Math.random() * 90000000;
         this.version = 1;
     }
-    
+
     @hook(Events.beforeUpdate)
     protected updateVersion() {
         this.version++;

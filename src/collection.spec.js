@@ -110,6 +110,8 @@ wrap_1.default('Collection.insertOne()', (t) => __awaiter(this, void 0, void 0, 
     t.equals(document, result.ref, 'result.ref should be TestDocument');
     t.equals(document.version, 1, 'TestDocument.beforeInsert should be fired');
     t.same(document.toObject(), inserted.toObject(), 'TestDocument should be inserted correctly');
+    t.ok(document.long instanceof schema_1.Long, 'TestDocument.long should be Long');
+    t.equal(document.toObject().long, document.long.toJSON(), 'TestDocument.toObject().long should correct');
     yield collection.drop();
     return (yield collection.connection).disconnect();
 }));

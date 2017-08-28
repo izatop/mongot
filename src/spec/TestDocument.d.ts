@@ -1,5 +1,5 @@
 import { SchemaFragment, SchemaFragmentArray, SchemaDocument, SchemaArray } from '../document';
-import { ObjectID } from '../schema';
+import { ObjectID, Long } from '../schema';
 export declare class ChildFragment extends SchemaFragment {
     min: number;
     max: number;
@@ -25,6 +25,7 @@ export declare class TestDocument extends SchemaDocument {
     deep: FooFragment;
     date: Date;
     someId: ObjectID;
+    long: Long;
     readonly sum: number;
     protected generateRandomKey(): void;
     protected updateVersion(): void;
