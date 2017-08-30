@@ -18,8 +18,6 @@ export namespace Events {
     export const afterDelete = 'afterDelete';
 }
 
-// Partial pattern doesn't work with deep interfaces and doesn't work correctly with getters.
-//export type Partial<T> = Object & {[P in keyof T]?: T[P]};
 export type Partial<T> = Object;
 
 class Collection<TDocument extends SchemaDocument> {

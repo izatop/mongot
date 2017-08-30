@@ -1,4 +1,4 @@
-import {ObjectID} from "./schema";
+import {ObjectID, Long} from "./schema";
 import {MetadataStore} from "./metadata/store";
 import {SchemaMetadata} from "./document";
 
@@ -13,7 +13,7 @@ export class Query {
     
     private normalize(value: any) {
         if (typeof value === 'object' && value !== null) {
-            if (value instanceof ObjectID) {
+            if (value instanceof ObjectID || value instanceof Long) {
                 return value;
             } else if (Array.isArray(value)) {
                 return value.map(x => this.normalize(x));

@@ -189,7 +189,17 @@ test('Collection.findOneAndUpdate/Replace/Delete()', async (t) => {
     t.equal(findOneAndReplaceResult.has(), true, 'findOneAndReplaceResult.has() should return true');
     t.same(findOneAndReplaceResult.get().name, 'bar1', 'findOneAndReplaceResult should contain a replaced document');
     t.same(findOneAndDeleteResult.get().toObject()._id, documents[2].toObject()._id, 'findOneAndDeleteResult should contain a deleted document');
+    
+    const long = Long.fromNumber(Math.random() * 100000000);
+    const res = await collection.findOneAndUpdate(
+        {long},
+        {name: 'clean', long},
+        {upsert: true, returnOriginal: false}
+    );
 
+    t.ok(res.get());
+    t.ok(res.get().long instanceof Long);
+    
     await collection.drop();
     return (await collection.connection).disconnect();
 });

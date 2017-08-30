@@ -9,7 +9,7 @@ class Query {
     }
     normalize(value) {
         if (typeof value === 'object' && value !== null) {
-            if (value instanceof schema_1.ObjectID) {
+            if (value instanceof schema_1.ObjectID || value instanceof schema_1.Long) {
                 return value;
             }
             else if (Array.isArray(value)) {
