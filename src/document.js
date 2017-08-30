@@ -186,7 +186,11 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
         const values = getStore(this);
         let _id = undefined;
         if (typeof document === 'object' && document !== null) {
-            _id = document[exports.PRIMARY_KEY_NAME];
+            /**
+             * _id must be undefined if given empty value
+             * @see https://github.com/izatop/mongot/issues/3
+            */
+            _id = document[exports.PRIMARY_KEY_NAME] || undefined;
         }
         Object.defineProperty(this, Symbol.for(exports.PRIMARY_KEY_NAME), {
             set(v) {

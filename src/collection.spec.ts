@@ -113,6 +113,7 @@ test('Collection.insertOne()', async (t) => {
     const document = collection.factory({any: {any: false}, name: 'One', someId: "555330303030303331323132"});
     const result = await collection.insertOne(document);
     const inserted = await collection.findOne(result.insertedId);
+    t.ok(result.ref._id === document._id, 'collection.insertOne() should affect on a document');
     t.ok(result instanceof InsertResult, 'collection.insertOne() should return InsertResult');
     t.ok(result.insertedId instanceof ObjectID, 'result.insertedId should be ObjectID');
     t.ok(document.someId instanceof ObjectID, 'TestDocument.someId should be ObjectID');
@@ -196,9 +197,12 @@ test('Collection.findOneAndUpdate/Replace/Delete()', async (t) => {
         {name: 'clean', long},
         {upsert: true, returnOriginal: false}
     );
-
-    t.ok(res.get());
-    t.ok(res.get().long instanceof Long);
+    
+    t.ok(res.has(), 'FindAndModifyResult should has a document');
+    t.ok(res.get(), 'FindAndModifyResult should get a document');
+    t.ok(res.get()._id, 'FindAndModifyResult should get _id');
+    t.ok(res.get().long instanceof Long, 'A document.long should be Long BSON type');
+    t.ok(await collection.findOne(res.get()._id), 'A document should exist');
     
     await collection.drop();
     return (await collection.connection).disconnect();

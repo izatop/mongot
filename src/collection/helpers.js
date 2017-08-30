@@ -40,6 +40,9 @@ class FindAndModifyResult {
         this.lastError = lastErrorObject;
         if (!!value) {
             this.ref = factory(value);
+            if (lastErrorObject['updatedExisting'] === false && 'upserted' in lastErrorObject) {
+                this.ref[Symbol.for(document_1.PRIMARY_KEY_NAME)] = lastErrorObject['upserted'];
+            }
         }
     }
     has() {

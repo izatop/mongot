@@ -46,6 +46,9 @@ export class FindAndModifyResult<TDocument extends SchemaDocument> {
         this.lastError = lastErrorObject;
         if (!!value) {
             this.ref = factory(value);
+            if (lastErrorObject['updatedExisting'] === false && 'upserted' in lastErrorObject) {
+                this.ref[Symbol.for(PRIMARY_KEY_NAME)] = lastErrorObject['upserted'];
+            }
         }
     }
 

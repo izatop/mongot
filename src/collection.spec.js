@@ -102,6 +102,7 @@ wrap_1.default('Collection.insertOne()', (t) => __awaiter(this, void 0, void 0, 
     const document = collection.factory({ any: { any: false }, name: 'One', someId: "555330303030303331323132" });
     const result = yield collection.insertOne(document);
     const inserted = yield collection.findOne(result.insertedId);
+    t.ok(result.ref._id === document._id, 'collection.insertOne() should affect on a document');
     t.ok(result instanceof helpers_1.InsertResult, 'collection.insertOne() should return InsertResult');
     t.ok(result.insertedId instanceof schema_1.ObjectID, 'result.insertedId should be ObjectID');
     t.ok(document.someId instanceof schema_1.ObjectID, 'TestDocument.someId should be ObjectID');
@@ -165,8 +166,11 @@ wrap_1.default('Collection.findOneAndUpdate/Replace/Delete()', (t) => __awaiter(
     t.same(findOneAndDeleteResult.get().toObject()._id, documents[2].toObject()._id, 'findOneAndDeleteResult should contain a deleted document');
     const long = schema_1.Long.fromNumber(Math.random() * 100000000);
     const res = yield collection.findOneAndUpdate({ long }, { name: 'clean', long }, { upsert: true, returnOriginal: false });
-    t.ok(res.get());
-    t.ok(res.get().long instanceof schema_1.Long);
+    t.ok(res.has(), 'FindAndModifyResult should has a document');
+    t.ok(res.get(), 'FindAndModifyResult should get a document');
+    t.ok(res.get()._id, 'FindAndModifyResult should get _id');
+    t.ok(res.get().long instanceof schema_1.Long, 'A document.long should be Long BSON type');
+    t.ok(yield collection.findOne(res.get()._id), 'A document should exist');
     yield collection.drop();
     return (yield collection.connection).disconnect();
 }));
