@@ -7,6 +7,7 @@ export declare class ChildFragment extends SchemaFragment {
 }
 export declare class BarFragment extends SchemaFragment {
     baz: string;
+    child: SchemaFragmentArray<ChildFragment>;
 }
 export declare class FooFragment extends SchemaFragment {
     bar: BarFragment;

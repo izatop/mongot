@@ -17,6 +17,7 @@ export class ChildFragment extends SchemaFragment {
 @fragment
 export class BarFragment extends SchemaFragment {
     @prop baz: string;
+    @prop(ChildFragment) child: SchemaFragmentArray<ChildFragment>;
 }
 
 @fragment

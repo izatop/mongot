@@ -10,6 +10,7 @@ var __rest = (this && this.__rest) || function (s, e) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const assert_1 = require("assert");
+const merge = require("merge");
 const store_1 = require("./metadata/store");
 const mutation_1 = require("./metadata/mutation");
 const schema_1 = require("./schema");
@@ -284,6 +285,30 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
         });
         return Object.assign({}, ...properties);
     }
+    merge(data) {
+        let source = data;
+        if (data instanceof SchemaMetadata) {
+            source = data.toObject();
+        }
+        const keys = new Set(Object.keys(source));
+        const metadata = this.getMetadata();
+        metadata.forEach(({ type, proto }, key) => {
+            if (keys.has(key)) {
+                if (type === Object) {
+                    this[key] = merge({}, this[key], source[key]);
+                }
+                else if (typeof this[key] === 'undefined' || this[key] === null) {
+                    this[key] = TypeCast.cast(type, source[key], proto);
+                }
+                else if (type === SchemaFragment) {
+                    this[key].merge(source[key]);
+                }
+                else {
+                    this[key] = source[key];
+                }
+            }
+        });
+    }
     static factory(document) {
         return new this().__mutate(document);
     }
@@ -324,7 +349,11 @@ exports.PartialDocumentFragment = PartialDocumentFragment;
 class SchemaArray extends Array {
     constructor(values, cast) {
         super();
-        this.cast = cast ? cast : x => x;
+        Reflect.defineProperty(this, 'cast', {
+            value: cast ? cast : x => x,
+            enumerable: false,
+            writable: false
+        });
         if (values && typeof values === 'object') {
             [...values].forEach(value => this.push(value));
         }

@@ -28,6 +28,7 @@ export declare class SchemaMetadata extends SchemaMutate {
     toJSON(): any;
     clone(): this;
     extract(): any;
+    merge(data: object | SchemaMetadata): void;
     static factory<T extends SchemaMetadata>(document?: Object): T;
 }
 export declare abstract class SchemaDocument extends SchemaMetadata {

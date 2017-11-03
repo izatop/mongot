@@ -1,4 +1,5 @@
 import {ok} from 'assert';
+import * as merge from 'merge';
 import {MetadataStore} from "./metadata/store";
 import {SchemaMutate} from './metadata/mutation';
 import {Collection} from "./collection";
@@ -345,6 +346,30 @@ export class SchemaMetadata extends SchemaMutate {
         return Object.assign({}, ...properties);
     }
 
+    merge(data: object | SchemaMetadata): void {
+        let source = data;
+        if (data instanceof SchemaMetadata) {
+            source = data.toObject();
+        }
+
+        const keys = new Set(Object.keys(source));
+        const metadata = this.getMetadata();
+
+        metadata.forEach(({type, proto}, key: string) => {
+            if (keys.has(key)) {
+                if (type === Object) {
+                    this[key] = merge({}, this[key], source[key]);
+                } else if (typeof this[key] === 'undefined' || this[key] === null) {
+                    this[key] = TypeCast.cast(type, source[key], proto);
+                } else if (type === SchemaFragment) {
+                    this[key].merge(source[key]);
+                } else {
+                    this[key] = source[key];
+                }
+            }
+        });
+    }
+
     static factory<T extends SchemaMetadata>(document?: Object): T {
         return new this().__mutate(document) as T;
     }
@@ -392,7 +417,13 @@ export class SchemaArray<T> extends Array<T> {
 
     constructor(values?: T[], cast?: (value: any) => T) {
         super();
-        this.cast = cast ? cast : x => x as T;
+
+        Reflect.defineProperty(this, 'cast', {
+            value: cast ? cast : x => x as T,
+            enumerable: false,
+            writable: false
+        });
+
         if (values && typeof values === 'object') {
             [...values].forEach(value => this.push(value));
         }

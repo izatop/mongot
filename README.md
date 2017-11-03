@@ -50,9 +50,13 @@ Schema supports these types: `ObjectID`, `string`, `boolean`, `number`,
 `date`, `Object`, `SchemaFragment` (also known as sub-document) 
 and `array`. A `buffer` type doesn't tested at this time.
 
-#### Create a document
+#### Create schema
 
-let's look at a `UserDocument` schema:
+To describe schema you need write a class with
+some properties decorated with `@prop` decorator
+and define property type. Just look at UserDocument
+schema example:
+ 
 
 ```ts
 # UserDocument.ts
@@ -110,10 +114,15 @@ class UserDocument extends SchemaDocument {
 
 ```
 
-### Create a repository
+### Usage
 
-To connect collections to a MongoDb instance you should 
-create a repository:
+
+#### Repository
+
+Repository is an util for creating connections to server
+and get connected collections.
+
+Example:
 
 ```ts
 # index.ts
@@ -126,13 +135,119 @@ const repository = new Repository('mongodb://localhost/test', options);
 The `Repository` class constructor has same arguments that 
 MongoClient.
 
-### Querying
 
-Before querying you should get a connected collection:
+#### Documents
+
+You can creating documents in two ways.
+
+Using `Collection.factory` method: 
 
 ```ts
-# index.ts
+# document-factory.ts
 import {Repository} from 'mongot';
+import {UserCollection} from './UserCollection';
+
+const repository = new Repository('mongodb://localhost/test', {});
+
+async function main(): void {
+    const users: UserCollection = repository.get(UserCollection);
+    const user = users.factory({
+        email: 'username@example.com',
+        firstName: 'Bob'
+    });
+    
+    console.log(user);
+
+    // saving document
+    await users.save(user);
+}
+
+main();
+```
+
+Using `DocumentSchema` constructor:
+
+```ts
+# document-constructor.ts
+import {Repository} from 'mongot';
+import {UserCollection} from './UserCollection';
+
+const repository = new Repository('mongodb://localhost/test', {});
+
+async function main(): void {
+    const users: UserCollection = repository.get(UserCollection);
+    const user = new UsersDocument({
+        email: 'username@example.com',
+        firstName: 'Bob'
+    });
+    
+    // or UsersDocument.factory(...)
+    
+    console.log(user);
+
+    // saving document
+    await users.save(user);
+}
+
+main();
+```
+
+##### Safe merging
+
+When you need update a document you can use
+safe document merging:
+
+```ts
+# document-safe-merging.ts
+import {Repository} from 'mongot';
+import {UserCollection} from './UserCollection';
+
+const repository = new Repository('mongodb://localhost/test', {});
+
+async function main(): void {
+    const users: UserCollection = repository.get(UserCollection);
+    const user = users.findOne();
+    
+    user.merge({lastName: 'Bond'});
+    
+    // save changes
+    users.save(user);
+}
+
+main();
+```
+
+This method saves data described in document schema only.
+
+#### Read queries
+
+Get connected collection to execute find query over:
+
+```ts
+# find.ts
+import {Repository} from 'mongot';
+import {UserCollection} from './UserCollection';
+
+const repository = new Repository('mongodb://localhost/test', {});
+
+async function main(): void {
+    const users: UserCollection = repository.get(UserCollection);
+    const user = await users.findByEmail('username@example.com');
+    
+    console.log(user);
+}
+
+main();
+```
+
+You can use any of these `Collection` methods for 
+querying: `findOne`, `find` and `aggregate` (see specs for help). 
+
+#### Write queries 
+
+```ts
+# update.ts
+import {Repository, ObjectID} from 'mongot';
 import {UserCollection} from './UserCollection';
 
 const options = {};
@@ -140,12 +255,17 @@ const repository = new Repository('mongodb://localhost/test', options);
 
 async function main(): void {
     const users: UserCollection = repository.get(UserCollection);
-    const user = await users.findByEmail('username@example.com');
-    
-    // do something with user
-    ...
+    const user = await users.findOne();
+    user.updated = new Date();
+    users.save(user);
 }
+
+main();
 ```
+
+`Collection` method `save` saves any data for `DocumentSchema` types.
+You also can use these `Collection` methods:
+`updateOne`, `findOneAndUpdate`, `updateMany` (see specs for help);
 
 #### Partial
 

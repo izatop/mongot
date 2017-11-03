@@ -37,6 +37,10 @@ __decorate([
     schema_1.prop,
     __metadata("design:type", String)
 ], BarFragment.prototype, "baz", void 0);
+__decorate([
+    schema_1.prop(ChildFragment),
+    __metadata("design:type", document_1.SchemaFragmentArray)
+], BarFragment.prototype, "child", void 0);
 BarFragment = __decorate([
     schema_1.fragment
 ], BarFragment);
