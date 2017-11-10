@@ -346,7 +346,7 @@ export class SchemaMetadata extends SchemaMutate {
         return Object.assign({}, ...properties);
     }
 
-    merge(data: object | SchemaMetadata): void {
+    merge(data: object | SchemaMetadata): this {
         let source = data;
         if (data instanceof SchemaMetadata) {
             source = data.toObject();
@@ -368,6 +368,8 @@ export class SchemaMetadata extends SchemaMutate {
                 }
             }
         });
+
+        return this;
     }
 
     static factory<T extends SchemaMetadata>(document?: Object): T {

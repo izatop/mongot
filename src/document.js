@@ -308,6 +308,7 @@ class SchemaMetadata extends mutation_1.SchemaMutate {
                 }
             }
         });
+        return this;
     }
     static factory(document) {
         return new this().__mutate(document);
