@@ -18,7 +18,7 @@ TestCollection = __decorate([
     schema_1.index({ number: -1 }, { background: false }),
     schema_1.index('randomUniqueKey', { unique: true, background: false }),
     schema_1.indexes(['number', { background: false }], [{ name: -1, date: 1 }, { sparse: true, background: false }]),
-    schema_1.collection('foo', TestDocument_1.TestDocument)
+    schema_1.collection('test_collection', TestDocument_1.TestDocument)
 ], TestCollection);
 exports.TestCollection = TestCollection;
 //# sourceMappingURL=TestCollection.js.map

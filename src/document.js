@@ -123,11 +123,11 @@ class TypeCast {
         }
     }
     static castToArray(type, proto, value) {
-        assert_1.ok(true === Array.isArray(value), `${type.name} need an array value for constructor given ${value.toString()}.`);
+        assert_1.ok(true === Array.isArray(value), `${type.name} need an array value for constructor.`);
         return new type(value, x => TypeCast.cast(proto, x));
     }
     static castToFragmentArray(type, proto, value) {
-        assert_1.ok(true === Array.isArray(value), `${type.name} need an array value for constructor given ${value.toString()}.`);
+        assert_1.ok(true === Array.isArray(value), `${type.name} need an array value for constructor.`);
         return new type(value, x => TypeCast.cast(SchemaFragment, x, proto));
     }
     static castToFragment(proto, value) {

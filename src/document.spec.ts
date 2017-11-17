@@ -8,6 +8,8 @@ import {TestExtend} from "./spec/TestExtend";
 import {Events} from "./collection";
 import {ObjectID, Long} from "./schema";
 import {PRIMARY_KEY_NAME} from "./document";
+import {TestMergeCollection} from "./spec/TestMergeCollection";
+import {FragmentFragment} from "./spec/TestMergeDocument";
 
 test('Document Merge', async (t) => {
     const collection = repo('document-test').get(TestCollection);
@@ -55,6 +57,30 @@ test('Document Merge', async (t) => {
             child: [{min: 1, max: 2}]
         }
     });
+
+    await collection.drop();
+    return (await collection.connection).disconnect();
+});
+
+test('Document Merge', async (t) => {
+    const collection = repo('document-test').get(TestMergeCollection);
+    const document = collection.factory({
+        fragments: [
+            {_id: '5a0ecd960795c64fd18b8e8b', name: '1', value: 1}
+        ]
+    });
+
+    document.merge({
+        fragments: [
+            {_id: '5a0ecd9c0795c64fd18b8e8c', name: '2', value: 2},
+            {_id: '5a0ecda10795c64fd18b8e8d', name: '3', value: 3}
+        ]
+    });
+
+    t.same(document.fragments.toJSON(), [
+        {_id: '5a0ecd9c0795c64fd18b8e8c', name: '2', value: 2},
+        {_id: '5a0ecda10795c64fd18b8e8d', name: '3', value: 3}
+    ]);
 
     await collection.drop();
     return (await collection.connection).disconnect();

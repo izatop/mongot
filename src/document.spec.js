@@ -11,6 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const wrap_1 = require("./spec/wrap");
 const connect_1 = require("./spec/connect");
 const TestCollection_1 = require("./spec/TestCollection");
+const TestMergeCollection_1 = require("./spec/TestMergeCollection");
 wrap_1.default('Document Merge', (t) => __awaiter(this, void 0, void 0, function* () {
     const collection = connect_1.default('document-test').get(TestCollection_1.TestCollection);
     const document = collection.factory({
@@ -55,6 +56,26 @@ wrap_1.default('Document Merge', (t) => __awaiter(this, void 0, void 0, function
             child: [{ min: 1, max: 2 }]
         }
     });
+    yield collection.drop();
+    return (yield collection.connection).disconnect();
+}));
+wrap_1.default('Document Merge', (t) => __awaiter(this, void 0, void 0, function* () {
+    const collection = connect_1.default('document-test').get(TestMergeCollection_1.TestMergeCollection);
+    const document = collection.factory({
+        fragments: [
+            { _id: '5a0ecd960795c64fd18b8e8b', name: '1', value: 1 }
+        ]
+    });
+    document.merge({
+        fragments: [
+            { _id: '5a0ecd9c0795c64fd18b8e8c', name: '2', value: 2 },
+            { _id: '5a0ecda10795c64fd18b8e8d', name: '3', value: 3 }
+        ]
+    });
+    t.same(document.fragments.toJSON(), [
+        { _id: '5a0ecd9c0795c64fd18b8e8c', name: '2', value: 2 },
+        { _id: '5a0ecda10795c64fd18b8e8d', name: '3', value: 3 }
+    ]);
     yield collection.drop();
     return (yield collection.connection).disconnect();
 }));

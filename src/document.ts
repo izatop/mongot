@@ -146,12 +146,12 @@ export class TypeCast {
     }
 
     static castToArray(type: typeof SchemaArray, proto: any, value: any): SchemaArray<any> {
-        ok(true === Array.isArray(value), `${type.name} need an array value for constructor given ${value.toString()}.`);
+        ok(true === Array.isArray(value), `${type.name} need an array value for constructor.`);
         return new type(value, x => TypeCast.cast(proto, x));
     }
 
     static castToFragmentArray(type: typeof SchemaArray, proto: any, value: any): SchemaArray<any> {
-        ok(true === Array.isArray(value), `${type.name} need an array value for constructor given ${value.toString()}.`);
+        ok(true === Array.isArray(value), `${type.name} need an array value for constructor.`);
         return new type(value, x => TypeCast.cast(SchemaFragment, x, proto));
     }
 
