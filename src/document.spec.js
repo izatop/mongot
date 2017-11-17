@@ -32,6 +32,7 @@ wrap_1.default('Document Merge', (t) => __awaiter(this, void 0, void 0, function
         defaults: {
             max: 1000
         },
+        children: [{ min: 9, max: 99 }],
         listOfNumbers: [999],
         any: {
             bar: 2
@@ -43,6 +44,7 @@ wrap_1.default('Document Merge', (t) => __awaiter(this, void 0, void 0, function
             }
         }
     });
+    t.same(document.children.toJSON(), [{ min: 9, max: 99 }]);
     t.equal(document.name, 'bar');
     t.equal(document.defaults.max, 1000);
     t.same(document.listOfNumbers, [999]);

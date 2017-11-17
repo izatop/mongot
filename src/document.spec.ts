@@ -31,6 +31,7 @@ test('Document Merge', async (t) => {
         defaults: {
             max: 1000
         },
+        children: [{min: 9, max: 99}],
         listOfNumbers: [999],
         any: {
             bar: 2
@@ -43,6 +44,7 @@ test('Document Merge', async (t) => {
         }
     });
 
+    t.same(document.children.toJSON(), [{min: 9, max: 99}]);
     t.equal(document.name, 'bar');
     t.equal(document.defaults.max, 1000);
     t.same(document.listOfNumbers, [999]);
