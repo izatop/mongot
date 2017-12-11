@@ -1,19 +1,7 @@
-import * as MongoDb from 'mongodb';
-import { Connection } from "./connection";
-import { Collection } from "./collection";
-import { SchemaDocument } from "./document";
-declare class Repository {
-    readonly state: Promise<Connection>;
-    constructor(uri: string, options?: MongoDb.MongoClientOptions);
-    get<D extends SchemaDocument, F extends Collection<D>>(collection: {
-        new (...args: any[]): F;
-    }): F;
-    destroy(): Promise<any>;
-}
-export { Repository };
-export * from './connection';
-export * from './collection';
-export * from './collection/helpers';
-export * from './document';
-export * from './schema';
-export * from './cursor';
+export { Repository } from './repository';
+export { Connection } from './connection';
+export { Collection, Events, Partial } from './collection';
+export { createNextAutoIncrementNumber, DeleteResult, FindAndModifyResult, InsertResult, UpdateResult } from './collection/helpers';
+export { SchemaDocument, PartialDocumentFragment, PRIMARY_KEY_NAME, SchemaArray, SchemaFragment, SchemaFragmentArray, SchemaMetadata, TypeCast } from './document';
+export { collection, document, auto, CollectionDecorator, fragment, hook, index, IndexDecorator, indexes, indexSpecType, Long, ObjectID, preq, prop, PropDecorator, PropRequiredDecorator, req, required, virtual } from './schema';
+export { CastFunction, Cursor } from './cursor';

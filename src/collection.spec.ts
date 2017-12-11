@@ -1,3 +1,4 @@
+import {TEST_MERGE_COLLECTION, TestMergeCollection} from "./spec/TestMergeCollection";
 import test from './spec/wrap';
 import repo from './spec/connect';
 import {Cursor} from "./cursor";
@@ -285,5 +286,19 @@ test('Collection.save()', async t => {
     t.equal((await collection.findOne(ref._id)).version, 2, 'A saved document version should be valid');
 
     await collection.drop();
+    return (await collection.connection).disconnect();
+});
+
+test('Collection.getRelative()', async assert => {
+    const collection = repo().get(TestCollection);
+    const relative = collection.getRelative(TestMergeCollection);
+
+    assert.ok(relative instanceof TestMergeCollection, 'Collection should get relative collection');
+    assert.equal(relative.name, TEST_MERGE_COLLECTION, 'Relative collection should have expected collection name');
+
+    await collection.connection;
+    await collection.drop();
+    await relative.drop();
+
     return (await collection.connection).disconnect();
 });

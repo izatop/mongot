@@ -2,8 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const MongoDb = require("mongodb");
 class Connection {
-    constructor(db) {
+    constructor(db, context) {
         this.db = db;
+        this.context = context;
     }
     create(name, options) {
         return this.db.createCollection(name, options);
@@ -28,13 +29,13 @@ class Connection {
         }
         return Promise.resolve();
     }
-    static connect(uri, options) {
+    static connect(context, uri, options) {
         if (process.env.hasOwnProperty('MONGODB_DEBUG')) {
             MongoDb.Logger.setLevel('debug');
         }
         return new Promise((resolve, reject) => {
             const callback = (error, db) => {
-                error ? reject(error) : resolve(new Connection(db));
+                error ? reject(error) : resolve(new Connection(db, context));
             };
             MongoDb.MongoClient.connect(uri, options, callback);
         });

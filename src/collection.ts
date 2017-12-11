@@ -38,8 +38,6 @@ class Collection<TDocument extends SchemaDocument> {
 
         this.name = name || metadata.name;
         this.construct = construct || metadata.construct;
-
-        // this.state provide a collection instance from a lazy connection
         this.state = connection.then(
             (connection: Connection) => connection.get(this.name, options || metadata.options)
         );
@@ -66,6 +64,15 @@ class Collection<TDocument extends SchemaDocument> {
                 }
             });
         });
+    }
+
+    /**
+     * Get collection
+     * @param {{new(...args: any[]): F}} collection
+     * @returns {F}
+     */
+    getRelative<D extends SchemaDocument, F extends Collection<D>>(collection: {new(...args:any[]): F}) {
+        return new collection(this.connection);
     }
 
     get collection(): PromiseLike<MongoDb.Collection> {
@@ -161,7 +168,7 @@ class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<number>}
      */
-    count(query: Object, options: MongoDb.MongoCountPreferences): Promise<number> {
+    count(query?: Object, options?: MongoDb.MongoCountPreferences): Promise<number> {
         return this.queue(collection => collection.count(this.normalizeQuery(query), options));
     }
 

@@ -1,25 +1,42 @@
 "use strict";
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
 Object.defineProperty(exports, "__esModule", { value: true });
-const connection_1 = require("./connection");
-class Repository {
-    constructor(uri, options) {
-        this.state = connection_1.Connection.connect(uri, options);
-    }
-    get(collection) {
-        return new collection(this.state);
-    }
-    destroy() {
-        return this.state.then((connection) => connection.disconnect(), error => error);
-    }
-}
-exports.Repository = Repository;
-__export(require("./connection"));
-__export(require("./collection"));
-__export(require("./collection/helpers"));
-__export(require("./document"));
-__export(require("./schema"));
-__export(require("./cursor"));
+var repository_1 = require("./repository");
+exports.Repository = repository_1.Repository;
+var connection_1 = require("./connection");
+exports.Connection = connection_1.Connection;
+var collection_1 = require("./collection");
+exports.Collection = collection_1.Collection;
+exports.Events = collection_1.Events;
+var helpers_1 = require("./collection/helpers");
+exports.createNextAutoIncrementNumber = helpers_1.createNextAutoIncrementNumber;
+exports.DeleteResult = helpers_1.DeleteResult;
+exports.FindAndModifyResult = helpers_1.FindAndModifyResult;
+exports.InsertResult = helpers_1.InsertResult;
+exports.UpdateResult = helpers_1.UpdateResult;
+var document_1 = require("./document");
+exports.SchemaDocument = document_1.SchemaDocument;
+exports.PartialDocumentFragment = document_1.PartialDocumentFragment;
+exports.PRIMARY_KEY_NAME = document_1.PRIMARY_KEY_NAME;
+exports.SchemaArray = document_1.SchemaArray;
+exports.SchemaFragment = document_1.SchemaFragment;
+exports.SchemaFragmentArray = document_1.SchemaFragmentArray;
+exports.SchemaMetadata = document_1.SchemaMetadata;
+exports.TypeCast = document_1.TypeCast;
+var schema_1 = require("./schema");
+exports.collection = schema_1.collection;
+exports.document = schema_1.document;
+exports.auto = schema_1.auto;
+exports.fragment = schema_1.fragment;
+exports.hook = schema_1.hook;
+exports.index = schema_1.index;
+exports.indexes = schema_1.indexes;
+exports.Long = schema_1.Long;
+exports.ObjectID = schema_1.ObjectID;
+exports.preq = schema_1.preq;
+exports.prop = schema_1.prop;
+exports.req = schema_1.req;
+exports.required = schema_1.required;
+exports.virtual = schema_1.virtual;
+var cursor_1 = require("./cursor");
+exports.Cursor = cursor_1.Cursor;
 //# sourceMappingURL=index.js.map

@@ -1,11 +1,11 @@
 import * as MongoDb from 'mongodb';
+import {Repository} from "./repository";
 
 export class Connection {
-    public readonly db: MongoDb.Db;
-    
-    private constructor(db: MongoDb.Db) {
-        this.db = db;
-    }
+    private constructor(
+        public readonly db: MongoDb.Db,
+        public readonly context: Repository
+    ) {}
     
     create(name: string, options?: MongoDb.CollectionCreateOptions): Promise<MongoDb.Collection> {
         return this.db.createCollection(name, options);
@@ -33,14 +33,14 @@ export class Connection {
         return Promise.resolve();
     }
     
-    static connect(uri: string, options?: MongoDb.MongoClientOptions): Promise<Connection> {
+    static connect(context: Repository, uri: string, options?: MongoDb.MongoClientOptions): Promise<Connection> {
         if (process.env.hasOwnProperty('MONGODB_DEBUG')) {
             (<{Logger: {setLevel(level:string)}}> <any> MongoDb).Logger.setLevel('debug');
         }
         
         return new Promise((resolve, reject) => {
             const callback: MongoDb.MongoCallback<MongoDb.Db> = (error, db) => {
-                error ? reject(error) : resolve(new Connection(db));
+                error ? reject(error) : resolve(new Connection(db, context));
             };
             
             MongoDb.MongoClient.connect(uri, options, callback);

@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const TestMergeCollection_1 = require("./spec/TestMergeCollection");
 const wrap_1 = require("./spec/wrap");
 const connect_1 = require("./spec/connect");
 const cursor_1 = require("./cursor");
@@ -232,6 +233,16 @@ wrap_1.default('Collection.save()', (t) => __awaiter(this, void 0, void 0, funct
     t.equal(ref.version, 2, 'An in-Memory document version should be valid');
     t.equal((yield collection.findOne(ref._id)).version, 2, 'A saved document version should be valid');
     yield collection.drop();
+    return (yield collection.connection).disconnect();
+}));
+wrap_1.default('Collection.getRelative()', (assert) => __awaiter(this, void 0, void 0, function* () {
+    const collection = connect_1.default().get(TestCollection_1.TestCollection);
+    const relative = collection.getRelative(TestMergeCollection_1.TestMergeCollection);
+    assert.ok(relative instanceof TestMergeCollection_1.TestMergeCollection, 'Collection should get relative collection');
+    assert.equal(relative.name, TestMergeCollection_1.TEST_MERGE_COLLECTION, 'Relative collection should have expected collection name');
+    yield collection.connection;
+    yield collection.drop();
+    yield relative.drop();
     return (yield collection.connection).disconnect();
 }));
 //# sourceMappingURL=collection.spec.js.map

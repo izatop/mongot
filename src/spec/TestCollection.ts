@@ -1,3 +1,4 @@
+import {TestMergeCollection} from "./TestMergeCollection";
 import {collection, index, indexes} from '../schema';
 import {Collection} from "../collection";
 import {Cursor} from '../cursor';

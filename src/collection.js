@@ -39,7 +39,6 @@ class Collection {
         const indexes = store_1.MetadataStore.getCollectionIndexMetadata(this.constructor) || [];
         this.name = name || metadata.name;
         this.construct = construct || metadata.construct;
-        // this.state provide a collection instance from a lazy connection
         this.state = connection.then((connection) => connection.get(this.name, options || metadata.options));
         this.connection = connection;
         this.queue((collection) => __awaiter(this, void 0, void 0, function* () {
@@ -62,6 +61,14 @@ class Collection {
                 }
             });
         }));
+    }
+    /**
+     * Get collection
+     * @param {{new(...args: any[]): F}} collection
+     * @returns {F}
+     */
+    getRelative(collection) {
+        return new collection(this.connection);
     }
     get collection() {
         return this.state;

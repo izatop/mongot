@@ -18,6 +18,14 @@ declare class Collection<TDocument extends SchemaDocument> {
     readonly name: string;
     readonly connection: Promise<Connection>;
     constructor(connection: Promise<Connection>, name?: string, options?: MongoDb.CollectionOptions | MongoDb.CollectionCreateOptions, construct?: typeof SchemaDocument);
+    /**
+     * Get collection
+     * @param {{new(...args: any[]): F}} collection
+     * @returns {F}
+     */
+    getRelative<D extends SchemaDocument, F extends Collection<D>>(collection: {
+        new (...args: any[]): F;
+    }): F;
     readonly collection: PromiseLike<MongoDb.Collection>;
     /**
      * @param fn
@@ -53,7 +61,7 @@ declare class Collection<TDocument extends SchemaDocument> {
      * @param options
      * @returns {Promise<number>}
      */
-    count(query: Object, options: MongoDb.MongoCountPreferences): Promise<number>;
+    count(query?: Object, options?: MongoDb.MongoCountPreferences): Promise<number>;
     /**
      * @param fieldOrSpec
      * @param options

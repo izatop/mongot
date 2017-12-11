@@ -9,10 +9,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const collection_1 = require("../collection");
 const schema_1 = require("../schema");
 const TestMergeDocument_1 = require("./TestMergeDocument");
+exports.TEST_MERGE_COLLECTION = 'test_merge_collection';
 let TestMergeCollection = class TestMergeCollection extends collection_1.Collection {
 };
 TestMergeCollection = __decorate([
-    schema_1.collection('test_merge_collection', TestMergeDocument_1.TestMergeDocument)
+    schema_1.collection(exports.TEST_MERGE_COLLECTION, TestMergeDocument_1.TestMergeDocument)
 ], TestMergeCollection);
 exports.TestMergeCollection = TestMergeCollection;
 //# sourceMappingURL=TestMergeCollection.js.map
