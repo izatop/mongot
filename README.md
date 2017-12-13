@@ -117,7 +117,6 @@ class UserDocument extends SchemaDocument {
 
 ### Usage
 
-
 #### Repository
 
 Repository is an util for creating connections to server
@@ -136,6 +135,34 @@ const repository = new Repository('mongodb://localhost/test', options);
 The `Repository` class constructor has same arguments that 
 MongoClient.
 
+##### Getting relative collections
+
+Sometimes you need getting link to relative collection in same database, especially for it we added `getRelative` method to `Collection` class:
+
+```ts
+# relative.ts
+import {Collection, ObjectID, collection} from 'mongot'; 
+import {UserDocument} from './UserDocument';
+import {UserPaymentsCollection} from './UserPaymentsCollection';
+
+@index('login', {unique: true})
+@collection('users', UserDocument)
+class UserCollection extends Collection<UserDocument> {
+    async addPayment(user_id: ObjectID, amount: number) {
+       const payments = this.getRelative(UserPaymentsCollection);
+       const user = await this.findOne({_id: user_id});
+       assert.ok(user, `User ${user_id} not found`);
+       assert.ok(amount > 0, `Amount should be greather than zero`);
+       
+       const success = await payments.makePayment(user_id, amount);
+       assert.ok(success, 'Payment cannot be added`);
+       
+       const currentBalance = await payments.getActualBalance(user_id);
+       await this.updateOne({_id: user_id}, {$set: {balance: currentBalance}});
+    }
+}
+
+```
 
 #### Documents
 
