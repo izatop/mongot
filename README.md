@@ -1,17 +1,18 @@
 # MongoT
 
-MongoT is a modern ODM library for MongoDb.
+A lightweight ODM for MongoDb made to help you describe a document schemas in TypeScript.
 
 ## Install
 
-Just type `npm i -S mongot` to install this package.
+`npm i -S mongot`
+
+## Requirements
+
+ * NodeJS 4+
+ * TypeScript 2.1+
+ * TypeScript options `emitDecoratorMetadata` and `experimentalDecorators` must be enabled in `tsconfig.json`
 
 ## Usage
-
-### Configure
-
-You may need TypeScript 2+ and should enable `experimentalDecorators`,
-`emitDecoratorMetadata` in your `tsconfig.json`.
 
 ### Collections
 
@@ -138,7 +139,7 @@ MongoClient.
 
 #### Documents
 
-You can creating documents in two ways.
+You can create documents in two ways.
 
 Using `Collection.factory` method: 
 
@@ -240,8 +241,7 @@ async function main(): void {
 main();
 ```
 
-You can use any of these `Collection` methods for 
-querying: `findOne`, `find` and `aggregate` (see specs for help). 
+You can use any of these `Collection` methods for querying: `findOne`, `find` and `aggregate` (see specs for help). 
 
 #### Write queries 
 
