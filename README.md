@@ -137,7 +137,7 @@ MongoClient.
 
 ##### Getting relative collections
 
-Sometimes you need getting link to relative collection in same database, especially for it we added `getRelative` method to `Collection` class:
+Sometimes you need getting a link to a relative collection in the same database, special for it we added a `getRelative` method to the `Collection` class:
 
 ```ts
 # relative.ts
