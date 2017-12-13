@@ -155,7 +155,7 @@ class UserCollection extends Collection<UserDocument> {
        assert.ok(amount > 0, `Amount should be greather than zero`);
        
        const success = await payments.makePayment(user_id, amount);
-       assert.ok(success, 'Payment cannot be added`);
+       assert.ok(success, 'Payment cannot be added');
        
        const currentBalance = await payments.getActualBalance(user_id);
        await this.updateOne({_id: user_id}, {$set: {balance: currentBalance}});
